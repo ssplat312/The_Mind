@@ -1,0 +1,22 @@
+.Card{
+    border: 8px;
+    border-radius: 14px;
+    border-style:solid;
+    border-color: black;
+    background-color: color-mix(in srgb, white 25%, blue 75%);
+    width: 100px;
+    padding-top: 45px;
+    padding-bottom: 45px;
+    font-size: 50px;
+    text-align: center;
+    color: black;
+    float: left;
+    }
+.Card:not(:first-child){
+    position: absolute;
+    z-index: 10px;
+}
+
+#Hand{
+position: relative;
+}
