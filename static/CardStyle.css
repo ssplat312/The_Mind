@@ -11,12 +11,17 @@
     text-align: center;
     color: black;
     float: left;
+    position:absolute
     }
-.Card:not(:first-child){
-    position: absolute;
-    z-index: 10px;
+
+.Card:hover{
+    background-color: blue;
+    background-origin: border-box;
+    cursor: grab;
+    transform: translate(5px,-20%);
+    z-index: 2;
 }
 
 #Hand{
-position: relative;
+    transform: translate(950px,600px);
 }
