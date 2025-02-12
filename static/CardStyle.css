@@ -11,17 +11,48 @@
     text-align: center;
     color: black;
     float: left;
-    position:absolute
+    position:absolute;
+    transition-duration: .5s;
+    animation-duration: 1s;
     }
 
 .Card:hover{
     background-color: blue;
+    background-origin: border-box;
+    cursor: pointer;
+    transform: translate(5px,-20%);
+    z-index: 2;
+}
+
+.Card.active{
+    background-color: blue;
+    background-origin: border-box;
+    cursor: pointer;
+    transform: translate(5px,-20%);
+    z-index: 2;
+}
+
+.Card.active:hover{
+    background-color: red;
     background-origin: border-box;
     cursor: grab;
     transform: translate(5px,-20%);
     z-index: 2;
 }
 
+.Card.currentlyPlayed{
+    margin-left: 0px;
+    transition: 1s;
+}
+.Card.played{
+    transform: translateY(10px);
+    margin-left: 0px;
+}
+
 #Hand{
     transform: translate(950px,600px);
+}
+
+#Pile{
+    transform: translate(950px,300px);
 }
