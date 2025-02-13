@@ -1,0 +1,16 @@
+.StickTop{
+    position:fixed;
+    background-color: rgb(155, 155, 155);
+    color: black;
+    padding: 5px 5px;
+    text-align: center;
+    top: 0px;
+}
+
+#LevelButtons{
+ text-align: center;
+}
+
+button{
+    cursor:pointer;
+}

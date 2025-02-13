@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" type="text/css" href="static/CardStyle.css">
+        <title>The Mind</title>
+        <!--<meta meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"> -->
+        <base href="/">
+        <link rel="stylesheet" type="text/css" href="/CardStyle.css">
+        <link rel="stylesheet" type="text/css" href="/GeneralStyles.css">
     </head>
     <body style="background-color: wheat;">
+        <button onclick="StartGame()" style="margin: auto;">Click when ready</button>
         <div id="Pile">
             <p>Deck goes here</p>
         </div>
         <div id="Hand">
         </div>
-        <button onclick="PlayCards()" style="transform: translate(1100px,825px); cursor:pointer;">Play Cards</button>
-
-        <script src="static/CardCode.js"></script>
+        <button onclick="PlayCards()" style="transform: translate(1100px,825px);">Play Cards</button>
+        <p class="StickTop"></p>
+        <script src="/CardCode.js"></script>
     </body>
 </html>

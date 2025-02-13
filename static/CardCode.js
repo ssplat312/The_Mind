@@ -1,3 +1,4 @@
+
 let avalibleCards = [];
 let selectedCards = [];
 let cardsinHand = [];
@@ -15,10 +16,13 @@ function ResetCards()
 }
 
 
-function SetHand(handSize)
+function SetHand(handSize, gameName)
 {
+    console.log(handSize, gameName);
+    document.getElementsByClassName("StickTop")[0].innerText = gameName;
     ResetCards();
     hand.replaceChildren();
+    pile.replaceChildren();
     var cardList = [];
     for(var i = 0; i < handSize; i++)
     {
@@ -26,8 +30,8 @@ function SetHand(handSize)
         {
             break;
         }
-        selectedCardPos = Math.floor(Math.random() * avalibleCards.length);
-        cardVal = avalibleCards[selectedCardPos];
+        var selectedCardPos = Math.floor(Math.random() * avalibleCards.length);
+        var cardVal = avalibleCards[selectedCardPos];
         avalibleCards.splice(selectedCardPos, 1);
         const card = document.createElement("p");
         card.innerText = cardVal;
@@ -36,15 +40,15 @@ function SetHand(handSize)
     }
     cardList = SortCards(cardList);
     cardList.forEach(card => {
+        console.log(card.innerText);
         hand.append(card);
         cardsinHand.push(card);
     });
-    console.log(avalibleCards);
+    SetCardsPosition();
 }
 
 function SetCardsPosition()
 {
-    let hand = document.getElementById("Hand");
     var cards = hand.getElementsByClassName("Card");
     lMargin = 0;
 
@@ -52,8 +56,8 @@ function SetCardsPosition()
     {   
         cards[i].style.marginLeft = String(lMargin) + "px";
         lMargin += 90;
-       
     }
+    //Add code here to center deck
 }
 
 hand.addEventListener("click", function(event){
@@ -182,6 +186,18 @@ function SortCards(cardList)
 
 }
 
-ResetCards();
-SetHand(12);
-SetCardsPosition();
+function StartGame()
+{
+    fetch("/getGameData")
+    .then(response =>
+        {console.log(response);
+          return response.json();}
+        )
+    .then(data =>
+        { 
+            let gameData = data
+            console.log(gameData);
+            SetHand(gameData.CardsLeft, gameData.GameName);
+        });
+
+}
