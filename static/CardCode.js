@@ -119,7 +119,7 @@ async function PlayCards()
      selectedCards.forEach(card => {
         AddCardMoveAnimation(card, waitAmount, isFirst);
         isFirst = false
-        waitAmount += 1000;
+        waitAmount += 500;
         //Wait till card moves in place to do this
     });
 
@@ -142,7 +142,7 @@ async function AddCardMoveAnimation(card, waitAmount, isFirst)
     card.classList.add("currentlyPlayed");
     card.style.transform = "translate(" + String(-lMarginSize) + "px, -300px)";
 
-    await wait(1000);
+    await wait(750);
    SetCardInPile(card);
    SetCardsPosition();
 }

@@ -11,6 +11,21 @@
             <output>1</output>
             <input type="submit" value="Create Game">
         </form>
+        <form action="/startGame" method="post">
+            <div id="LevelButtons">
+                <label for="cardAmount">What level do you want to play?</label>
+                <button  type="submit" name="cardAmount" value="10">Level 10</button>
+                <button  type="submit" name="cardAmount" value="9">Level 9</button>
+                <button  type="submit" name="cardAmount" value="8">Level 8</button>
+                <button  type="submit" name="cardAmount" value="7">Level 7</button>
+                <button  type="submit" name="cardAmount" value="6">Level 6</button>
+                <button  type="submit" name="cardAmount" value="5">Level 5</button>
+                <button  type="submit" name="cardAmount" value="4">Level 4</button>
+                <button  type="submit" name="cardAmount" value="3">Level 3</button>
+                <button  type="submit" name="cardAmount" value="2">Level 2</button>
+                <button  type="submit" name="cardAmount" value="1">Level 1</button>
+            </div>
+        </form>
        <script src="/SetupGame.js"></script>
     </body>
 </html>
