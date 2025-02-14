@@ -20,11 +20,20 @@ app.post("/startGame", (req, res) =>
 {
     console.log(req.body);    
     cardsLeft = parseInt(req.body.cardAmount);
-    gameName = "Custom Game";
+    gameName = "Level " + req.body.cardAmount;
     res.sendFile(path.join(__dirname, 'MainPage.html'));
     console.log(cardsLeft, gameName);
 });
 
+app.post("/startCustomGame", (req, res) =>
+    {
+        console.log(req.body);    
+        cardsLeft = parseInt(req.body.cardAmount);
+        gameName = "Custom Game";
+        res.sendFile(path.join(__dirname, 'MainPage.html'));
+        console.log(cardsLeft, gameName);
+    });
+    
 function MakeServer(ServerNum)
 {
     const port = ServerNum;
