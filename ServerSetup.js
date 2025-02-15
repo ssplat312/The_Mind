@@ -10,6 +10,7 @@ app.use(express.static("/workspaces/The_Mind/static"));
 var cardsLeft = 0;
 var gameName = "";
 var isfullRun = false;
+var winStatus = "";
 
 app.get("/", (req,res) =>{
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
@@ -21,7 +22,7 @@ app.post("/startGameFromLevel", (req, res) =>
 {
     console.log(req.body);    
     cardsLeft = parseInt(req.body.cardAmount);
-    gameName = "Level " + req.body.cardAmount;
+    gameName = "Level " + req.body.cardAmount + " (Custom Game)";
     isfullRun = false;
     res.sendFile(path.join(__dirname, 'MainPage.html'));
 });
@@ -56,4 +57,16 @@ app.get("/getGameData", (req, res) => {
     res.json(data);
 });
 
-MakeServer(1092);
+app.get("/getWinData", (req, res) => {
+    data = {WinStatus: winStatus};
+    res.json(data);
+});
+
+app.post("/setWinStatus", (req, res) => {
+    winStatus = req.body.WinData;
+});
+
+app.get("/returnToMenu", (req, res) =>{
+    res.sendFile(path.join(__dirname, 'MenuScreen.html'));
+});
+MakeServer(4000);

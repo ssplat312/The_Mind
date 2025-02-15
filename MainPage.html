@@ -8,13 +8,16 @@
         <link rel="stylesheet" type="text/css" href="/GeneralStyles.css">
     </head>
     <body style="background-color: wheat;">
-        <button onclick="StartGame()" style="margin: auto;">Click when ready</button>
+        <button onclick="StartGame()" style="transform: translate(1100px,525px)" id="StartButton">Click when ready</button>
+        <p id="WinText"></p>
+        <button onclick="NextLevel()" style="transform: translate(1100px,525px)" id="NextLevelButton" hidden='true'>Click when ready</button>
+        <button onclick="location.href='/returnToMenu'" style="transform: translate(1100px,525px)" id="EndButton" hidden="true">Click to go to main menu</button>
         <div id="Pile">
             <p>Deck goes here</p>
         </div>
         <div id="Hand">
         </div>
-        <button onclick="PlayCards()" style="transform: translate(1100px,825px);">Play Cards</button>
+        <button onclick="PlayCards()" style="transform: translate(1100px,825px);" id="PlayButton">Play Cards</button>
         <p class="StickTop"></p>
         <script src="/CardCode.js"></script>
     </body>

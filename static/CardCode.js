@@ -6,6 +6,9 @@ let cardsInOrder = [];
 let hand = document.getElementById("Hand");
 let pile = document.getElementById("Pile");
 var canSelect = true;
+var roundOver = false;
+var fullRun = false;
+var cardsLeft = 0;
 function ResetCards()
 {
     avalibleCards = [];
@@ -43,6 +46,7 @@ function SetHand(handSize, gameName)
         console.log(card.innerText);
         hand.append(card);
         cardsinHand.push(card);
+        cardsInOrder.push(card.innerText);
     });
     SetCardsPosition();
 }
@@ -62,7 +66,7 @@ function SetCardsPosition()
 
 hand.addEventListener("click", function(event){
 
-    if(FindIndex(event.target.classList, "Card") != -1 && canSelect)
+    if(FindIndex(event.target.classList, "Card") != -1 && canSelect && roundOver == false)
     {
         let curCard = event.target;
         cardIndex = FindIndex(selectedCards, curCard);
@@ -113,9 +117,9 @@ async function PlayCards()
         canSelect = false;
     }
     selectedCards = SortCards(selectedCards);
-    var isFirst = true
+    let isFirst = true
     ReomveSelectedCardsFromHand();
-    var waitAmount = 0;
+    let waitAmount = 0;
      selectedCards.forEach(card => {
         AddCardMoveAnimation(card, waitAmount, isFirst);
         isFirst = false
@@ -133,7 +137,13 @@ async function PlayCards()
 async function AddCardMoveAnimation(card, waitAmount, isFirst)
 {
     await wait(waitAmount);
-    var lMarginSize = parseInt(card.style.marginLeft.replace("px", ""));
+    if(roundOver)
+    {
+        card.classList.remove("active");
+        SetCardsPosition();
+        return;
+    }
+    let lMarginSize = parseInt(card.style.marginLeft.replace("px", ""));
     if(!isFirst)
     {
         lMarginSize -= 90;
@@ -142,14 +152,78 @@ async function AddCardMoveAnimation(card, waitAmount, isFirst)
     card.classList.add("currentlyPlayed");
     card.style.transform = "translate(" + String(-lMarginSize) + "px, -300px)";
 
-    await wait(750);
+    await wait(500);
    SetCardInPile(card);
    SetCardsPosition();
+   CheckCard(card.innerText);
 }
 
 function wait(milliseconds) {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
   }
+
+
+function CheckCard(cardText)
+{
+    if(cardText == cardsInOrder[0])
+    {
+        cardsInOrder.splice(0, 1);
+        if(cardsInOrder.length == 0)
+        {
+            roundOver = true;
+            console.log("You won this round");
+            if(fullRun && cardsLeft < 10)
+            {
+                document.getElementById("NextLevelButton").hidden = false;
+            }else
+            {
+                var winText = "You won ";
+                if(fullRun)
+                {
+                    winText += "10/10 levels!";
+                }else
+                {
+                    winText += "with " + cardsLeft + " cards in total";
+                }
+
+                winData = {WinData: winText};
+                fetch("/setWinStatus", {
+                    method: "post",
+                    headers: {
+                        'Content-Type': 'application/json'
+                        },
+                    body: JSON.stringify(winData)
+                });
+
+                document.getElementById("PlayButton").hidden = true;
+                document.getElementById("EndButton").hidden = false;
+            }
+        }
+    }else
+    {
+        roundOver = true;
+        console.log("User is incorrect");
+        var winText = "You lost ";
+        if(fullRun)
+        {
+            winText += "at " + gameName + " out of 10";
+        }else
+        {
+            winText += "with " + cardsLeft + " cards in total";
+        }
+
+        winData = {WinData: winText};
+        fetch("/setWinStatus", {
+            method: "post",
+            headers: {
+                'Content-Type': 'application/json'
+              },
+            body: JSON.stringify(winData)
+        });
+        document.getElementById("PlayButton").hidden = true;
+        document.getElementById("EndButton").hidden = false;
+    }
+}
 
 function SetCardInPile(card)
 {
@@ -160,6 +234,7 @@ function SetCardInPile(card)
     card.classList.add("played");
     hand.removeChild(card);
     pile.append(card);
+    
 }
 
 function SortCards(cardList)
@@ -188,16 +263,29 @@ function SortCards(cardList)
 
 function StartGame()
 {
+    document.getElementById("StartButton").hidden = true;
     fetch("/getGameData")
     .then(response =>
         {console.log(response);
           return response.json();}
         )
-    .then(data =>
+    .then(gameData =>
         { 
-            let gameData = data
             console.log(gameData);
+            fullRun = gameData.FullRun;
+            console.log(fullRun);
+            cardsLeft = gameData.CardsLeft;
             SetHand(gameData.CardsLeft, gameData.GameName);
         });
 
 }
+
+function NextLevel()
+{
+    roundOver = false;
+    document.getElementById("NextLevelButton").hidden = true;
+    cardsLeft++;
+    gameName = "Level " + String(cardsLeft);
+    SetHand(cardsLeft, gameName);
+}
+
