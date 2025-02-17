@@ -11,7 +11,7 @@ var cardsLeft = 0;
 var gameName = "";
 var isfullRun = false;
 var winStatus = "";
-
+var cardsInOrder = [];
 app.get("/", (req,res) =>{
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
 });
@@ -20,7 +20,6 @@ app.get("/", (req,res) =>{
 
 app.post("/startGameFromLevel", (req, res) =>
 {
-    console.log(req.body);    
     cardsLeft = parseInt(req.body.cardAmount);
     gameName = "Level " + req.body.cardAmount + " (Custom Game)";
     isfullRun = false;
@@ -29,7 +28,6 @@ app.post("/startGameFromLevel", (req, res) =>
 
 app.post("/startCustomGame", (req, res) =>
     {
-        console.log(req.body);    
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Custom Game";
         isfullRun = false;
@@ -38,7 +36,6 @@ app.post("/startCustomGame", (req, res) =>
     
 app.post("/startFullGame", (req, res) =>
     {
-        console.log(req.body);    
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Level " + req.body.cardAmount;
         isfullRun = true;
@@ -53,7 +50,6 @@ function MakeServer(ServerNum)
 
 app.get("/getGameData", (req, res) => {
     data = {CardsLeft: cardsLeft, GameName: gameName, FullRun: isfullRun};
-    console.log(data);
     res.json(data);
 });
 
@@ -70,3 +66,50 @@ app.get("/returnToMenu", (req, res) =>{
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
 });
 MakeServer(4000);
+
+app.post("/setCardsInOrder", (req, res) =>{
+    req.body.CardsUsed.forEach(card => {
+        cardsInOrder.push(card);
+    });
+    cardsInOrder = SortCards(cardsInOrder);
+
+});
+
+app.post("/checkCardsInOrder", (req, res) =>{
+    cardData = {CardsInOrder: false, LastCard: false};
+    if(req.body.CurCard == cardsInOrder[0])
+    {
+        cardData.CardsInOrder = true;
+        cardsInOrder.splice(0, 1);
+    }
+
+    if(cardsInOrder.length == 0)
+    {
+        cardData.LastCard = true;
+    }
+    res.json(cardData);
+});
+
+function SortCards(cardList)
+{
+    for(var i = 1; i < cardList.length; i++)
+    {
+        var j = i;
+        while(j > 0)
+        {
+            if(parseInt(cardList[j - 1]) > parseInt(cardList[j]))
+            {
+                let tempCard = cardList[j];
+                cardList[j] = cardList[j - 1];
+                cardList[j - 1] = tempCard;
+                j--;
+            }else
+            {
+                break;
+            }
+        }
+    }
+
+    return cardList;
+
+}

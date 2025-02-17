@@ -21,20 +21,20 @@ function ResetCards()
 
 function SetHand(handSize, gameName)
 {
-    console.log(handSize, gameName);
     document.getElementsByClassName("StickTop")[0].innerText = gameName;
     ResetCards();
     hand.replaceChildren();
     pile.replaceChildren();
     var cardList = [];
+    var cardVal = [];
     for(var i = 0; i < handSize; i++)
     {
         if(i >= 100)
         {
             break;
         }
-        var selectedCardPos = Math.floor(Math.random() * avalibleCards.length);
-        var cardVal = avalibleCards[selectedCardPos];
+        let selectedCardPos = Math.floor(Math.random() * avalibleCards.length);
+        let cardVal = avalibleCards[selectedCardPos];
         avalibleCards.splice(selectedCardPos, 1);
         const card = document.createElement("p");
         card.innerText = cardVal;
@@ -43,10 +43,18 @@ function SetHand(handSize, gameName)
     }
     cardList = SortCards(cardList);
     cardList.forEach(card => {
-        console.log(card.innerText);
         hand.append(card);
         cardsinHand.push(card);
-        cardsInOrder.push(card.innerText);
+        cardVal.push(card.innerText);
+    });
+
+    cardData = {CardsUsed: cardVal};
+    fetch("/setCardsInOrder", {
+        method: "post",
+        headers: {
+            'Content-Type': 'application/json'
+            },
+        body: JSON.stringify(cardData)
     });
     SetCardsPosition();
 }
@@ -80,7 +88,6 @@ hand.addEventListener("click", function(event){
             selectedCards.push(curCard);
         }
 
-        console.log(selectedCards);
     }
 });
 
@@ -163,12 +170,26 @@ function wait(milliseconds) {
   }
 
 
-function CheckCard(cardText)
+async function CheckCard(cardText)
 {
-    if(cardText == cardsInOrder[0])
+    var isInOrder = false;
+    var isLastCard = false;
+    let cardData = {CurCard: cardText};
+    await fetch("/checkCardsInOrder",{
+        method:"post",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cardData)
+
+    }).then(response => {return response.json()}).then(cardData =>{
+        isInOrder = cardData.CardsInOrder;
+        isLastCard = cardData.LastCard;
+    })
+
+    if(isInOrder)
     {
-        cardsInOrder.splice(0, 1);
-        if(cardsInOrder.length == 0)
+        if(isLastCard)
         {
             roundOver = true;
             console.log("You won this round");
@@ -187,6 +208,7 @@ function CheckCard(cardText)
                 }
 
                 winData = {WinData: winText};
+                
                 fetch("/setWinStatus", {
                     method: "post",
                     headers: {
@@ -265,15 +287,11 @@ function StartGame()
 {
     document.getElementById("StartButton").hidden = true;
     fetch("/getGameData")
-    .then(response =>
-        {console.log(response);
-          return response.json();}
+    .then(response =>{return response.json();}
         )
     .then(gameData =>
         { 
-            console.log(gameData);
             fullRun = gameData.FullRun;
-            console.log(fullRun);
             cardsLeft = gameData.CardsLeft;
             SetHand(gameData.CardsLeft, gameData.GameName);
         });
