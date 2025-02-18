@@ -1,8 +1,46 @@
 
-const express = require('express')
+const { randomInt } = require('crypto');
+const clients = [];
+const express = require('express');
 const path = require('path');
-const app = express()
+const app = express();
+var portNum = randomInt(1000,9999);
+const Server = require('http').createServer(app); 
+const io = require("socket.io")(Server);
+io.on('connection', socket => {
+    clients.push(socket);
+    console.log("Client connected");
+    PrintClients();
+    socket.on("disconnect", () => {
+        console.log("Connection Lost");
+        RemoveClient(socket.id);
+        PrintClients();
+    });
+});
 
+function RemoveClient(clientId)
+{
+    for(var i = 0; i < clients.length; i++)
+    {
+        if(clients[i].id == clientId)
+        {
+            clients.splice(i, 1);
+            console.log("Client removed");
+            return;
+        }
+    }
+
+    console.log("Client does not exist");
+}
+
+function PrintClients()
+{
+    clients.forEach(client => {
+        console.log(client.id);
+    })
+}
+var ServerName = "";
+var newServer = false;
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(express.static("/workspaces/The_Mind/static"));
@@ -13,7 +51,18 @@ var isfullRun = false;
 var winStatus = "";
 var cardsInOrder = [];
 app.get("/", (req,res) =>{
+    if(newServer)
+    {
+        return;
+    }
+    ipAdress = req.ip;
+    console.log("Your ip is " + ipAdress);
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
+});
+
+
+app.post("/connectToServer", (req,res) =>{
+   
 });
 
 
@@ -42,11 +91,7 @@ app.post("/startFullGame", (req, res) =>
         res.sendFile(path.join(__dirname, 'MainPage.html'));
     });
 
-function MakeServer(ServerNum)
-{
-    const port = ServerNum;
-    app.listen(port, () => console.log(`Server listening on  port ${port}`)); 
-}
+
 
 app.get("/getGameData", (req, res) => {
     data = {CardsLeft: cardsLeft, GameName: gameName, FullRun: isfullRun};
@@ -65,7 +110,6 @@ app.post("/setWinStatus", (req, res) => {
 app.get("/returnToMenu", (req, res) =>{
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
 });
-MakeServer(4000);
 
 app.post("/setCardsInOrder", (req, res) =>{
     req.body.CardsUsed.forEach(card => {
@@ -113,3 +157,8 @@ function SortCards(cardList)
     return cardList;
 
 }
+
+
+Server.listen(portNum, ()=>{
+    console.log(`Server listening to port ${portNum}`);
+})

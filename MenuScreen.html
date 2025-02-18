@@ -30,6 +30,15 @@
             <button type="submit" name="cardAmount" value="1">Start Run</button>
         </form>
         <p id="WinStatus">Win text goes here</p>
+        <form action="/connectToServer" method="post">
+            <label for="portNum">Enter a port number here</label>
+            <input type="number" min="1000" max="9999" value="1000" name="portNum">
+            <input type="submit" value="Connect to server">
+        </form>
        <script src="/SetupWinText.js"></script>
+       <script src = "/socket.io/socket.io.js"></script>
+        <script>
+            const socket = io();
+        </script>
     </body>
 </html>
