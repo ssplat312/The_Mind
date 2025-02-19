@@ -1,21 +1,70 @@
 
 const { randomInt } = require('crypto');
 const clients = [];
+const clientsReady = [];
+const clientsPlaying = [];
+const UserNames = {};
+const allMessages = [];
 const express = require('express');
 const path = require('path');
 const app = express();
 var portNum = randomInt(1000,9999);
 const Server = require('http').createServer(app); 
 const io = require("socket.io")(Server);
+
 io.on('connection', socket => {
     clients.push(socket);
     console.log("Client connected");
-    PrintClients();
+
+    socket.on("GetMessageReady", (message) => {
+        let senderUserName = UserNames[socket.id];
+        var finalMessagae = `${senderUserName}: ${message}`;
+        allMessages.push(finalMessagae);
+        clients.forEach(client =>{
+            if(client.id in UserNames)
+            {
+                finalMessagae = `${senderUserName}: ${message}`;
+                if(UserNames[socket.id] == UserNames[client.id])
+                {
+                    console.log(UserNames[socket.id], UserNames[client.id]);
+                    finalMessagae = `You: ${message}`;
+                }
+                client.emit("Message", finalMessagae, socket.id);
+            }
+        })
+    });
+
+    socket.on("ShowPastMessages", () =>{
+        allMessages.forEach(message =>{
+            socket.emit("Message", message, "None");
+        })
+    });
+
+    socket.on("SetUserName", (userName) => {
+        for(clientId in UserNames)
+        {
+            if(UserNames[clientId].trim().toLowerCase() == userName.trim().toLowerCase())
+            {
+                socket.emit("UserNameTaken");
+                return;
+            }
+            console.log(UserNames[clientId], userName);
+        }
+        UserNames[socket.id] = userName;
+        socket.emit('UserNameFree');
+    });
+
     socket.on("disconnect", () => {
+        userLeaving = UserNames[socket.id];
+        allMessages.push(`${userLeaving} left`);
+        clients.forEach(client =>{
+            client.emit("Message", `${userLeaving} left`, socket.io);
+        });
         console.log("Connection Lost");
         RemoveClient(socket.id);
         PrintClients();
     });
+
 });
 
 function RemoveClient(clientId)
@@ -24,6 +73,7 @@ function RemoveClient(clientId)
     {
         if(clients[i].id == clientId)
         {
+            delete(UserNames[clientId]);
             clients.splice(i, 1);
             console.log("Client removed");
             return;
@@ -39,6 +89,7 @@ function PrintClients()
         console.log(client.id);
     })
 }
+
 var ServerName = "";
 var newServer = false;
 app.use(express.json());
@@ -56,7 +107,6 @@ app.get("/", (req,res) =>{
         return;
     }
     ipAdress = req.ip;
-    console.log("Your ip is " + ipAdress);
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
 });
 
@@ -72,6 +122,7 @@ app.post("/startGameFromLevel", (req, res) =>
     cardsLeft = parseInt(req.body.cardAmount);
     gameName = "Level " + req.body.cardAmount + " (Custom Game)";
     isfullRun = false;
+    console.log(UserNames);
     res.sendFile(path.join(__dirname, 'MainPage.html'));
 });
 
@@ -82,7 +133,7 @@ app.post("/startCustomGame", (req, res) =>
         isfullRun = false;
         res.sendFile(path.join(__dirname, 'MainPage.html'));
     });
-    
+
 app.post("/startFullGame", (req, res) =>
     {
         cardsLeft = parseInt(req.body.cardAmount);

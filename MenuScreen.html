@@ -35,10 +35,60 @@
             <input type="number" min="1000" max="9999" value="1000" name="portNum">
             <input type="submit" value="Connect to server">
         </form>
+        <div id="MessageBox">
+        </div>
+        <form for="message" id="MessageForm">
+            <input type="text" id="InputBox" name="message" value="Enter your username here">
+            <input type="submit" name="message" value="Send" style="transform: translate(50%, 50%); margin-top: 8%; margin-left: 7%;">
+        </form>
+
        <script src="/SetupWinText.js"></script>
        <script src = "/socket.io/socket.io.js"></script>
         <script>
             const socket = io();
+            var userName = "";
+            const sendForm = document.getElementById("MessageForm");
+            const inputArea = document.getElementById("InputBox");
+            sendForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                if(inputArea.value.trim() != "")
+                {
+                    if(userName != "")
+                    {
+                        socket.emit("GetMessageReady", inputArea.value);
+                    }else
+                    {
+                        userName = inputArea.value;
+                        socket.emit("SetUserName", userName);
+                    }
+                    inputArea.value = "";
+                }
+            });
+
+                socket.on("Message", (message, clientId) => {
+                    textEle = document.createElement('p');
+                    console.log(message);
+                    textEle.innerText = message;
+                    if(clientId == socket.id)
+                    {
+                        textEle.style.textAlign = "right";
+                    }
+                    document.getElementById("MessageBox").append(textEle);
+                });
+                
+                socket.on("UserNameFree", ()=>{
+                    socket.emit("ShowPastMessages");
+                    socket.emit("GetMessageReady", "joined");
+                });
+                
+                socket.on("UserNameTaken", ()=>{
+                    let userNameHolder = userName;
+                    userName = "";
+                    inputArea.value = `${userNameHolder} is taken, please input a different name`;
+
+                });
+
+         
         </script>
     </body>
 </html>
