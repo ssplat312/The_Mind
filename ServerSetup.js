@@ -1,20 +1,31 @@
 
 const { randomInt } = require('crypto');
 const clients = [];
-const clientsReady = [];
+const clientsReady = {};
 const clientsPlaying = [];
 const UserNames = {};
 const allMessages = [];
 const express = require('express');
 const path = require('path');
 const app = express();
-var portNum = randomInt(1000,9999);
+var portNum = 4000;
+const baseUrl = "http://127.0.0.1:4000";
+//Make the port number always equal 4000, but make the url name the client id.
 const Server = require('http').createServer(app); 
+var ServerName = "";
 const io = require("socket.io")(Server);
 
 io.on('connection', socket => {
     clients.push(socket);
+    PrintClients();
     console.log("Client connected");
+
+    socket.on("ChangeServer", (ServerName) => {
+        console.log(socket);
+        socket.disconnect();
+        socket = io(`${baseUrl}/${ServerName}`);
+        console.log(socket);
+    });
 
     socket.on("GetMessageReady", (message) => {
         let senderUserName = UserNames[socket.id];
@@ -26,7 +37,6 @@ io.on('connection', socket => {
                 finalMessagae = `${senderUserName}: ${message}`;
                 if(UserNames[socket.id] == UserNames[client.id])
                 {
-                    console.log(UserNames[socket.id], UserNames[client.id]);
                     finalMessagae = `You: ${message}`;
                 }
                 client.emit("Message", finalMessagae, socket.id);
@@ -48,7 +58,6 @@ io.on('connection', socket => {
                 socket.emit("UserNameTaken");
                 return;
             }
-            console.log(UserNames[clientId], userName);
         }
         UserNames[socket.id] = userName;
         socket.emit('UserNameFree');
@@ -101,11 +110,12 @@ var gameName = "";
 var isfullRun = false;
 var winStatus = "";
 var cardsInOrder = [];
+
+function ReadyClient(clientID)
+{
+    
+}
 app.get("/", (req,res) =>{
-    if(newServer)
-    {
-        return;
-    }
     ipAdress = req.ip;
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
 });
@@ -122,7 +132,6 @@ app.post("/startGameFromLevel", (req, res) =>
     cardsLeft = parseInt(req.body.cardAmount);
     gameName = "Level " + req.body.cardAmount + " (Custom Game)";
     isfullRun = false;
-    console.log(UserNames);
     res.sendFile(path.join(__dirname, 'MainPage.html'));
 });
 

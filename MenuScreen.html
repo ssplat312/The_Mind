@@ -74,6 +74,7 @@
                         textEle.style.textAlign = "right";
                     }
                     document.getElementById("MessageBox").append(textEle);
+                    document.getElementById("MessageBox").scrollTop = document.getElementById("MessageBox").scrollHeight;
                 });
                 
                 socket.on("UserNameFree", ()=>{
