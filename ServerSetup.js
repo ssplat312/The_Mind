@@ -8,8 +8,8 @@ const allMessages = [];
 const express = require('express');
 const path = require('path');
 const app = express();
-var portNum = 4000;
-const baseUrl = "http://127.0.0.1:4000";
+var portNum = randomInt(0, 65536);
+const baseUrl = `http://127.0.0.1:${portNum}`;
 //Make the port number always equal 4000, but make the url name the client id.
 const Server = require('http').createServer(app); 
 var ServerName = "";
@@ -20,11 +20,13 @@ io.on('connection', socket => {
     PrintClients();
     console.log("Client connected");
 
-    socket.on("ChangeServer", (ServerName) => {
-        console.log(socket);
+    socket.on("ChangeServer", (portNum) => {
         socket.disconnect();
-        socket = io(`${baseUrl}/${ServerName}`);
-        console.log(socket);
+        Server.close();
+        console.log(portNum);
+        Server.listen(portNum, ()=>{
+            console.log(`Server listening to port ${portNum}`);
+        })
     });
 
     socket.on("GetMessageReady", (message) => {
@@ -122,7 +124,8 @@ app.get("/", (req,res) =>{
 
 
 app.post("/connectToServer", (req,res) =>{
-   
+    
+    
 });
 
 

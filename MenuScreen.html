@@ -30,16 +30,16 @@
             <button type="submit" name="cardAmount" value="1">Start Run</button>
         </form>
         <p id="WinStatus">Win text goes here</p>
-        <form action="/connectToServer" method="post">
-            <label for="portNum">Enter a port number here</label>
-            <input type="number" min="1000" max="9999" value="1000" name="portNum">
+        <form id="ServerForm">
+            <label>Enter a server number here</label>
+            <input type="number" placeholder="Enter server number here" id="ServerInput">
             <input type="submit" value="Connect to server">
         </form>
         <div id="MessageBox">
         </div>
-        <form for="message" id="MessageForm">
-            <input type="text" id="InputBox" name="message" value="Enter your username here">
-            <input type="submit" name="message" value="Send" style="transform: translate(50%, 50%); margin-top: 8%; margin-left: 7%;">
+        <form id="MessageForm">
+            <input type="text" id="InputBox"  value="">
+            <input type="submit"  value="Send" style="transform: translate(50%, 50%); margin-top: 8%; margin-left: 7%;">
         </form>
 
        <script src="/SetupWinText.js"></script>
@@ -47,20 +47,32 @@
         <script>
             const socket = io();
             var userName = "";
+            const baseUrl = "http://127.0.0.1";
             const sendForm = document.getElementById("MessageForm");
             const inputArea = document.getElementById("InputBox");
+            const severForm = document.getElementById("ServerForm");
+            const serverText = document.getElementById("ServerInput");
+            inputArea.placeholder  = "Enter your username here";
+            severForm.addEventListener("submit", (event) =>{
+                let portNumber = serverText.value;
+                socket.emit("ChangeServer", portNumber);
+                socket = io(`${baseUrl}:${portNumber}`);
+                window.location.href = `${baseUrl}:${portNumber}`;
+            })
             sendForm.addEventListener("submit", (event) => {
                 event.preventDefault();
                 if(inputArea.value.trim() != "")
                 {
-                    if(userName != "")
-                    {
-                        socket.emit("GetMessageReady", inputArea.value);
-                    }else
+
+                    if(userName == "")
                     {
                         userName = inputArea.value;
+                        inputArea.value = "";
                         socket.emit("SetUserName", userName);
-                    }
+                        return;
+                    }                       
+                    
+                    socket.emit("GetMessageReady", inputArea.value);
                     inputArea.value = "";
                 }
             });
@@ -75,17 +87,19 @@
                     }
                     document.getElementById("MessageBox").append(textEle);
                     document.getElementById("MessageBox").scrollTop = document.getElementById("MessageBox").scrollHeight;
+                    inputArea.placeholder  = "Enter Your Message Here";
                 });
                 
                 socket.on("UserNameFree", ()=>{
                     socket.emit("ShowPastMessages");
                     socket.emit("GetMessageReady", "joined");
+                    inputArea.placeholder  = "Enter Your Message Here";
                 });
                 
                 socket.on("UserNameTaken", ()=>{
                     let userNameHolder = userName;
                     userName = "";
-                    inputArea.value = `${userNameHolder} is taken, please input a different name`;
+                    inputArea.placeholder  = `${userNameHolder} is taken, please input a different name`;
 
                 });
 
