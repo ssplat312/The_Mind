@@ -31,8 +31,8 @@
         </form>
         <p id="WinStatus">Win text goes here</p>
         <form id="ServerForm">
-            <label>Enter a server number here</label>
-            <input type="number" placeholder="Enter server number here" id="ServerInput">
+            <label>Enter a server Name here</label>
+            <input type="text" placeholder="Enter server name here" id="ServerInput">
             <input type="submit" value="Connect to server">
         </form>
         <div id="MessageBox">
@@ -45,20 +45,29 @@
        <script src="/SetupWinText.js"></script>
        <script src = "/socket.io/socket.io.js"></script>
         <script>
+            console.log(window.location.hostname);
+            console.log(window.location.host);
             const socket = io();
+            console.log(socket.io.uri);
             var userName = "";
-            const baseUrl = "http://127.0.0.1";
             const sendForm = document.getElementById("MessageForm");
             const inputArea = document.getElementById("InputBox");
             const severForm = document.getElementById("ServerForm");
             const serverText = document.getElementById("ServerInput");
             inputArea.placeholder  = "Enter your username here";
             severForm.addEventListener("submit", (event) =>{
-                let portNumber = serverText.value;
-                socket.emit("ChangeServer", portNumber);
-                socket = io(`${baseUrl}:${portNumber}`);
-                window.location.href = `${baseUrl}:${portNumber}`;
+                event.preventDefault();
+                socket.emit("MakeServer", serverText.value, socket.io.uri, "Ssplat");
+                serverText.value = "";
+
+            });
+
+            socket.on("ConnectToNewServer", (uri) =>{
+                const newUrl = `https//:${uri}`;
+                socket = io(newUrl);
+                window.location.href = newUrl;
             })
+
             sendForm.addEventListener("submit", (event) => {
                 event.preventDefault();
                 if(inputArea.value.trim() != "")

@@ -1,3 +1,12 @@
+var mysql = require('mysql');
+var con = mysql.createConnection({
+    host: "sql3.freesqldatabase.com",
+    user: "sql3764497",
+    password: "DLw6Hfya4L",
+    database: "sql3764497"
+});
+
+
 
 const { randomInt } = require('crypto');
 const clients = [];
@@ -8,11 +17,12 @@ const allMessages = [];
 const express = require('express');
 const path = require('path');
 const app = express();
-var portNum = randomInt(0, 65536);
-const baseUrl = `http://127.0.0.1:${portNum}`;
+//Will first equal 4000, then randomInt(0, 60000)
+var portNum = randomInt(0, 60000);
 //Make the port number always equal 4000, but make the url name the client id.
 const Server = require('http').createServer(app); 
 var ServerName = "";
+var HostName = "BaseName";
 const io = require("socket.io")(Server);
 
 io.on('connection', socket => {
@@ -20,13 +30,31 @@ io.on('connection', socket => {
     PrintClients();
     console.log("Client connected");
 
-    socket.on("ChangeServer", (portNum) => {
-        socket.disconnect();
+    socket.on("MakeServer", (newServerName, uri, userName) =>{
+        con.connect(function(err) {
+        if(err)
+        {
+            throw err;
+        }
+
+        console.log("Connected to sql");
+        var insertData = `INSERT INTO sql3764497.ServerInfo (ServerName, ServerID, PortNum, HostName) VALUES ('${newServerName}', '${uri}', ${portNum}, '${HostName}')`;
+            con.query(insertData, function(err, results) {
+                if(err)
+                {
+                    throw err;
+                }
+                ServerName = newServerName;
+                HostName = userName;
+                console.log("Added to sql");
+            })
+        });
+    });
+
+    socket.on("ChangeServer", (ServerName) => {
         Server.close();
-        console.log(portNum);
-        Server.listen(portNum, ()=>{
-            console.log(`Server listening to port ${portNum}`);
-        })
+
+        socket.emit("ConnectToNewServer");
     });
 
     socket.on("GetMessageReady", (message) => {
@@ -67,6 +95,8 @@ io.on('connection', socket => {
 
     socket.on("disconnect", () => {
         userLeaving = UserNames[socket.id];
+        
+
         allMessages.push(`${userLeaving} left`);
         clients.forEach(client =>{
             client.emit("Message", `${userLeaving} left`, socket.io);
@@ -74,6 +104,19 @@ io.on('connection', socket => {
         console.log("Connection Lost");
         RemoveClient(socket.id);
         PrintClients();
+        if (clients.length == 0)
+        {   
+            console.log("Removing Server");
+            con.connect(function(err) {
+                var deleteData = `DELETE FROM sql3764497.ServerInfo Where ServerName = '${ServerName}'`
+                con.query(deleteData, function(err, results){
+                    if(err)
+                    {
+                        throw err;
+                    }
+                })
+            });
+        }
     });
 
 });
