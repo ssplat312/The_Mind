@@ -24,6 +24,7 @@ const Server = require('http').createServer(app);
 var ServerName = "";
 var HostName = "BaseName";
 const io = require("socket.io")(Server);
+const connecterIO = require('socket.io-client');
 
 io.on('connection', socket => {
     clients.push(socket);
@@ -51,10 +52,19 @@ io.on('connection', socket => {
         });
     });
 
-    socket.on("ChangeServer", (ServerName) => {
-        Server.close();
+    socket.on("ChangeServer", (newServerName) => {
+            var selectData = `SELECT * FROM sql3764497.ServerInfo WHERE ServerName = ` + mysql.escape(newServerName) ;
+            con.query(selectData, function(err, results){
 
-        socket.emit("ConnectToNewServer");
+                if(err)
+                {
+                    throw err;
+                }
+
+                console.log(results[0].ServerID);
+                socket.emit("ConnectToNewServer", results[0].ServerID);
+            });
+
     });
 
     socket.on("GetMessageReady", (message) => {
@@ -106,6 +116,7 @@ io.on('connection', socket => {
         PrintClients();
         if (clients.length == 0)
         {   
+            Server.close();
             console.log("Removing Server");
             con.connect(function(err) {
                 var deleteData = `DELETE FROM sql3764497.ServerInfo Where ServerName = '${ServerName}'`
