@@ -30,19 +30,28 @@
             <button type="submit" name="cardAmount" value="1">Start Run</button>
         </form>
         <p id="WinStatus">Win text goes here</p>
+
         <form id="ServerForm">
             <label>Enter a server Name here</label>
             <input type="text" placeholder="Enter server name here" id="ServerInput">
             <input type="submit" value="Make new server" name="MakeServer">
             <input type="submit" value="Join a server" name="JoinServer">
         </form>
+        <input id="SearchBar" onkeyup="GetServers()" onfocus="GetServers()" onfocusout="ClearSearch()" placeholder="Search Servers">
+        <div id="SearchResults">
+
+        </div>
         <div id="MessageBox">
         </div>
+
         <form id="MessageForm">
             <input type="text" id="InputBox"  value="">
             <input type="submit"  value="Send" style="transform: translate(50%, 50%); margin-top: 8%; margin-left: 7%;">
         </form>
-
+        <form>
+            <input type="">
+        </form>
+        <button type="button" onclick="ShowServers()">See Servers</button>
        <script src="/SetupWinText.js"></script>
        <script src = "/socket.io/socket.io.js"></script>
         <script>
@@ -56,6 +65,41 @@
             const severForm = document.getElementById("ServerForm");
             const serverText = document.getElementById("ServerInput");
             inputArea.placeholder  = "Enter your username here";
+
+
+            function SerachServers(ServersAvalible)
+            {
+                const SearchBar = document.getElementById("SearchBar");
+                let inputSearch = SearchBar.value.toLowerCase();
+                const SearchResults = document.getElementById("SearchResults");
+                SearchResults.replaceChildren();
+                ServersAvalible.forEach(server => {
+                    let serverName = server.ServerName;
+                    if(serverName.trim().toLowerCase().indexOf(inputSearch) > -1)
+                    {
+                        const tempButton = document.createElement("button");
+                        tempButton.innerText = serverName;
+                        //tempButton.onclick();
+                        SearchResults.append(tempButton);
+                    }
+                });
+            }
+            
+            function ClearSearch()
+            {
+                const SearchResults = document.getElementById("SearchResults");
+                SearchResults.replaceChildren();
+            }
+
+            function GetServers()
+            {
+                fetch("/ShowServers").then(response =>{return response.json();})
+                .then(Servers => {
+                    SerachServers(Servers);
+                });
+              
+            }
+
             severForm.addEventListener("submit", (event) =>{
                 console.log(event.submitter);
                 event.preventDefault();
@@ -88,6 +132,8 @@
                     inputArea.value = "";
                 }
             });
+
+            
 
                 socket.on("Message", (message, clientId) => {
                     textEle = document.createElement('p');
@@ -124,7 +170,8 @@
                     console.log(newUrl);
                     window.location.href = newUrl;
                 });
-         
+                
+                
         </script>
     </body>
 </html>

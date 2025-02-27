@@ -12,7 +12,6 @@ const { randomInt } = require('crypto');
 const clients = [];
 const clientsReady = {};
 const clientsPlaying = [];
-const UserNames = {};
 const allMessages = [];
 const express = require('express');
 const path = require('path');
@@ -22,22 +21,19 @@ var portNum = randomInt(0, 60000);
 //Make the port number always equal 4000, but make the url name the client id.
 const Server = require('http').createServer(app); 
 var ServerName = "";
-var HostName = "BaseName";
+var HostName = "";
 const io = require("socket.io")(Server);
-const connecterIO = require('socket.io-client');
-
 io.on('connection', socket => {
+    socket.data.isHost = false;
+    socket.data.userName = "";
     clients.push(socket);
-    PrintClients();
     console.log("Client connected");
-
     socket.on("MakeServer", (newServerName, uri, userName) =>{
-        con.connect(function(err) {
-        if(err)
+        if(newServerName.trim() == "")
         {
-            throw err;
+            return;
         }
-
+       socket.data.isHost = true;
         console.log("Connected to sql");
         var insertData = `INSERT INTO sql3764497.ServerInfo (ServerName, ServerID, PortNum, HostName) VALUES ('${newServerName}', '${uri}', ${portNum}, '${HostName}')`;
             con.query(insertData, function(err, results) {
@@ -48,9 +44,8 @@ io.on('connection', socket => {
                 ServerName = newServerName;
                 HostName = userName;
                 console.log("Added to sql");
-            })
-        });
-    });
+            });
+   });
 
     socket.on("ChangeServer", (newServerName) => {
             var selectData = `SELECT * FROM sql3764497.ServerInfo WHERE ServerName = ` + mysql.escape(newServerName) ;
@@ -61,27 +56,29 @@ io.on('connection', socket => {
                     throw err;
                 }
 
-                console.log(results[0].ServerID);
                 socket.emit("ConnectToNewServer", results[0].ServerID);
             });
 
     });
 
     socket.on("GetMessageReady", (message) => {
-        let senderUserName = UserNames[socket.id];
+        if(socket.data.userName != "")
+        {
+            return;
+        }
+        let senderUserName = socket.data.userName;
         var finalMessagae = `${senderUserName}: ${message}`;
         allMessages.push(finalMessagae);
         clients.forEach(client =>{
-            if(client.id in UserNames)
-            {
                 finalMessagae = `${senderUserName}: ${message}`;
-                if(UserNames[socket.id] == UserNames[client.id])
+                if(client.data.userName == socket.data.userName)
                 {
                     finalMessagae = `You: ${message}`;
                 }
-                client.emit("Message", finalMessagae, socket.id);
-            }
-        })
+                if(client.data.userName != "")
+                    client.emit("Message", finalMessagae, socket.id);
+            
+        });
     });
 
     socket.on("ShowPastMessages", () =>{
@@ -91,20 +88,19 @@ io.on('connection', socket => {
     });
 
     socket.on("SetUserName", (userName) => {
-        for(clientId in UserNames)
-        {
-            if(UserNames[clientId].trim().toLowerCase() == userName.trim().toLowerCase())
+        clients.forEach(client => {
+            if(client.data.userName.trim().toLowerCase() == userName.trim().toLowerCase())
             {
                 socket.emit("UserNameTaken");
                 return;
             }
-        }
-        UserNames[socket.id] = userName;
+        });
+        socket.data.userName = userName;
         socket.emit('UserNameFree');
     });
 
     socket.on("disconnect", () => {
-        userLeaving = UserNames[socket.id];
+        userLeaving = socket.data.userName;
         
 
         allMessages.push(`${userLeaving} left`);
@@ -114,23 +110,30 @@ io.on('connection', socket => {
         console.log("Connection Lost");
         RemoveClient(socket.id);
         PrintClients();
-        if (clients.length == 0)
+        if (clients.length == 0 || socket.data.isHost)
         {   
             Server.close();
             console.log("Removing Server");
-            con.connect(function(err) {
-                var deleteData = `DELETE FROM sql3764497.ServerInfo Where ServerName = '${ServerName}'`
-                con.query(deleteData, function(err, results){
-                    if(err)
-                    {
-                        throw err;
-                    }
-                })
-            });
+            RemoveServer();
         }
     });
 
 });
+
+
+function RemoveServer()
+{
+    
+    
+        var deleteData = "DELETE FROM sql3764497.ServerInfo Where ServerName = " + mysql.escape(ServerName);
+        con.query(deleteData, function(err, results){
+            if(err)
+            {
+                throw err;
+            }
+        });
+    
+}
 
 function RemoveClient(clientId)
 {
@@ -138,7 +141,6 @@ function RemoveClient(clientId)
     {
         if(clients[i].id == clientId)
         {
-            delete(UserNames[clientId]);
             clients.splice(i, 1);
             console.log("Client removed");
             return;
@@ -151,7 +153,7 @@ function RemoveClient(clientId)
 function PrintClients()
 {
     clients.forEach(client => {
-        console.log(client.id);
+        console.log(client.data.userName);
     })
 }
 
@@ -177,9 +179,19 @@ app.get("/", (req,res) =>{
 });
 
 
-app.post("/connectToServer", (req,res) =>{
-    
-    
+app.get("/ShowServers", (req, res) => {
+    let serverQuery = "SELECT * FROM sql3764497.ServerInfo";
+    con.query(serverQuery, (err, results) => {
+        if(err)
+        {
+            throw err;
+        }
+        
+        console.log(results);
+        res.json(results);
+
+
+    });
 });
 
 

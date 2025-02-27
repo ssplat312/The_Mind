@@ -32,3 +32,12 @@
 button{
     cursor:pointer;
 }
+
+#SearchBar{
+    background-color: azure;
+}
+
+#SearchBar button{
+    background-color: wheat;
+    size: 10px;
+}
