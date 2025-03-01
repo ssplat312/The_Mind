@@ -37,7 +37,32 @@ button{
     background-color: azure;
 }
 
-#SearchBar button{
+#SearchResults button{
     background-color: wheat;
     size: 10px;
 }
+
+#MakeServerInput{
+    color: black;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+
+}
+
+
+#MakeServerInput::placeholder{
+    color: black;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+
+}
+
+#UserNameInput{
+    color: black;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+#UserNameInput::placeholder{
+    color: black;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+

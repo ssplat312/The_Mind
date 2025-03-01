@@ -25,14 +25,23 @@ var HostName = "";
 const io = require("socket.io")(Server);
 io.on('connection', socket => {
     socket.data.isHost = false;
+    socket.data.isReady = false;
     socket.data.userName = "";
+    console.log(socket.data);
     clients.push(socket);
     console.log("Client connected");
+
     socket.on("MakeServer", (newServerName, uri, userName) =>{
         if(newServerName.trim() == "")
         {
             return;
         }
+
+        if(socket.data.isHost && ServerName != "")
+        {
+            RemoveServer();
+        }
+
        socket.data.isHost = true;
         console.log("Connected to sql");
         var insertData = `INSERT INTO sql3764497.ServerInfo (ServerName, ServerID, PortNum, HostName) VALUES ('${newServerName}', '${uri}', ${portNum}, '${HostName}')`;
@@ -57,13 +66,15 @@ io.on('connection', socket => {
                 }
 
                 socket.emit("ConnectToNewServer", results[0].ServerID);
+                ServerName = newServerName;
             });
 
     });
 
     socket.on("GetMessageReady", (message) => {
-        if(socket.data.userName != "")
+        if(socket.data.userName == "")
         {
+            console.log("No username");
             return;
         }
         let senderUserName = socket.data.userName;
@@ -96,7 +107,13 @@ io.on('connection', socket => {
             }
         });
         socket.data.userName = userName;
-        socket.emit('UserNameFree');
+        console.log(socket.data);
+        let hasHost = ServerName != "";
+        socket.emit('UserNameFree', hasHost);
+    });
+
+    socket.on("GetSocketData", () => {
+        socket.emit("RecieveSocketData", socket.data);     
     });
 
     socket.on("disconnect", () => {
@@ -132,7 +149,8 @@ function RemoveServer()
                 throw err;
             }
         });
-    
+        ServerName = "";
+
 }
 
 function RemoveClient(clientId)
@@ -157,8 +175,7 @@ function PrintClients()
     })
 }
 
-var ServerName = "";
-var newServer = false;
+
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(express.static("/workspaces/The_Mind/static"));
@@ -187,7 +204,6 @@ app.get("/ShowServers", (req, res) => {
             throw err;
         }
         
-        console.log(results);
         res.json(results);
 
 

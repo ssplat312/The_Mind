@@ -31,15 +31,23 @@
         </form>
         <p id="WinStatus">Win text goes here</p>
 
-        <form id="ServerForm">
-            <label>Enter a server Name here</label>
-            <input type="text" placeholder="Enter server name here" id="ServerInput">
-            <input type="submit" value="Make new server" name="MakeServer">
-            <input type="submit" value="Join a server" name="JoinServer">
-        </form>
-        <input id="SearchBar" onkeyup="GetServers()" onfocus="GetServers()" onfocusout="ClearSearch()" placeholder="Search Servers">
-        <div id="SearchResults">
-
+        <div id="MakeServerForm">
+            <p>Enter a server Name here</p>
+            <input type="text" placeholder="Enter server name here" id="MakeServerInput">
+            <input type="button" value="Make new server" name="MakeServer" onclick="GetServersForCheck()">
+        </div>
+        <div id="UserNameMaker">
+            <input type="text" id="UserNameInput" placeholder="Enter the username you want to use here.">
+            <button onclick="SetUserName()">Set Username</button>
+        </div>
+        <div id="SearchDropdown">
+            <button id="DropdownButton" onclick="ClearSearch()">Clear Search</button>
+            <div id="SearchMenu" class="SearchContents">
+                <input type="text" id="SearchBar" onkeyup="GetServersForSearch()" onfocus="GetServersForSearch()" placeholder="Search Servers">
+                <div id="SearchResults">
+                    
+                </div>
+            </div>
         </div>
         <div id="MessageBox">
         </div>
@@ -51,21 +59,44 @@
         <form>
             <input type="">
         </form>
-        <button type="button" onclick="ShowServers()">See Servers</button>
        <script src="/SetupWinText.js"></script>
        <script src = "/socket.io/socket.io.js"></script>
         <script>
-            console.log(window.location.hostname);
-            console.log(window.location.host);
             let socket = io();
-            console.log(socket.io.uri);
             var userName = "";
+            var serverName = "";
+            var socketData = [];
+            socket.emit("GetSocketData");
             const sendForm = document.getElementById("MessageForm");
             const inputArea = document.getElementById("InputBox");
-            const severForm = document.getElementById("ServerForm");
-            const serverText = document.getElementById("ServerInput");
-            inputArea.placeholder  = "Enter your username here";
+            const userNameInput = document.getElementById("UserNameInput");
+            userNameInput.addEventListener("keydown", ()=> {
+                userNameInput.style.backgroundColor = "white";
+            });
 
+            const severForm = document.getElementById("MakeServerForm");
+            const serverText = document.getElementById("MakeServerInput");
+            serverText.addEventListener("keydown", ()=>{
+                serverText.style.backgroundColor = "white";
+            });
+            inputArea.placeholder  = "Enter your messages here";
+            
+            socket.on("RecieveSocketData", (sentsocketData) => {
+                socketData = sentsocketData;
+                console.log(socketData);
+            });
+
+            function ShowSearches()
+            {
+                document.getElementById("SearchResults").classList.toggle("show");
+            }
+
+            function SetUserName()
+            {
+                userName = userNameInput.value;
+                userNameInput.value = "";
+                socket.emit("SetUserName", userName);
+            }
 
             function SerachServers(ServersAvalible)
             {
@@ -79,7 +110,9 @@
                     {
                         const tempButton = document.createElement("button");
                         tempButton.innerText = serverName;
-                        //tempButton.onclick();
+                        tempButton.addEventListener("click", function() {
+                            ChangeServer(serverName);
+                        });
                         SearchResults.append(tempButton);
                     }
                 });
@@ -89,9 +122,11 @@
             {
                 const SearchResults = document.getElementById("SearchResults");
                 SearchResults.replaceChildren();
+                document.getElementById("SearchBar").value = "";
+
             }
 
-            function GetServers()
+            function GetServersForSearch()
             {
                 fetch("/ShowServers").then(response =>{return response.json();})
                 .then(Servers => {
@@ -100,36 +135,74 @@
               
             }
 
-            severForm.addEventListener("submit", (event) =>{
-                console.log(event.submitter);
-                event.preventDefault();
-                if(event.submitter.name == "MakeServer")
+            function GetServersForCheck()
+            {
+                fetch("/ShowServers").then(response =>{return response.json();})
+                .then(Servers => {
+                    ServerTaken(Servers);
+                });
+            }
+            
+            function ServerTaken(ServersAvalible)
+            {
+                if(userName == "")
                 {
-                    socket.emit("MakeServer", serverText.value, socket.io.uri, "Ssplat");
-                }else
-                {
-                    socket.emit("ChangeServer", serverText.value);
+                    serverText.value = "";
+                    serverText.placeholder = "You need to set a username before you make a server";
+                    return;
                 }
+                let newServerName = serverText.value.trim().toLowerCase();
+                let servenNameSent = serverText.value;
                 serverText.value = "";
+                if(newServerName == "")
+                {
+                    serverText.placeholder = "You can't have nothing as your server name dumba**";
+                    serverText.style.backgroundColor = "red";
+                    return;
+                }
+                for(let i = 0; i < ServersAvalible.length; i++)
+                {
+                    let server = ServersAvalible[i];
+                    if(server.ServerName.trim().toLowerCase() == newServerName)
+                    {
+                        serverText.placeholder = `${newServerName} is taken, try another name`;
+                        serverText.style.backgroundColor = "red";
+                        return;
+                    }
+                }
 
+                serverText.placeholder = `${newServerName} is avliable, enjoy!`;
+                serverText.style.backgroundColor = "green";
+                serverName = servenNameSent;
+                socket.emit("MakeServer", servenNameSent, socket.io.uri, "Ssplat");
+                socket.emit("ShowPastMessages");
+                socket.emit("GetMessageReady", "joined");
+            }
 
-            });
+            function ChangeServer(newServerName)
+            {
+                socket.emit("ChangeServer", newServerName);
+            }
 
+        
             sendForm.addEventListener("submit", (event) => {
                 event.preventDefault();
                 if(inputArea.value.trim() != "")
                 {
-
+                    let inputValue = inputArea.value
+                    console.log(socketData);
+                    
                     if(userName == "")
                     {
-                        userName = inputArea.value;
-                        inputArea.value = "";
-                        socket.emit("SetUserName", userName);
+                        inputArea.placeholder = "Make a username first, then a server";
                         return;
                     }                       
                     
-                    socket.emit("GetMessageReady", inputArea.value);
-                    inputArea.value = "";
+                    if(serverName == "")
+                    {
+                        inputArea.placeholder = "Create or join a server before you join."
+                    }
+                    socket.emit("GetMessageReady", inputValue);
                 }
             });
 
@@ -146,23 +219,28 @@
                     document.getElementById("MessageBox").append(textEle);
                     document.getElementById("MessageBox").scrollTop = document.getElementById("MessageBox").scrollHeight;
                     inputArea.placeholder  = "Enter Your Message Here";
+                    inputArea.value = "";
                 });
                 
-                socket.on("UserNameFree", ()=>{
-                    socket.emit("ShowPastMessages");
-                    socket.emit("GetMessageReady", "joined");
-                    inputArea.placeholder  = "Enter Your Message Here";
+                socket.on("UserNameFree", (hasHost)=>{
+                    if(hasHost)
+                    {
+                        socket.emit("ShowPastMessages");
+                        socket.emit("GetMessageReady", "joined");
+                    }
+                    userNameInput.placeholder  = `${userName} is your username now! Enjoy!`;
+                    userNameInput.style.backgroundColor = "green";
                 });
                 
                 socket.on("UserNameTaken", ()=>{
                     let userNameHolder = userName;
                     userName = "";
-                    inputArea.placeholder  = `${userNameHolder} is taken, please input a different name`;
+                    userNameInput.placeholder  = `${userNameHolder} is taken, please input a different name`;
+                    userNameInput.style.backgroundColor = "red";
 
                 });
                 
                 socket.on("ConnectToNewServer", (uri) =>{
-                    console.log(uri);
                     const newUrl = uri;
                     document.getElementById("MessageBox").replaceChildren();
                     socket.disconnect();
