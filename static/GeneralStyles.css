@@ -12,16 +12,25 @@
  vertical-align: middle;
 }
 
+#SearchMenu{
+    height: 200px;
+    width: 400px;
+    border: 2px solid;
+    overflow: auto;
+}
+
 #MessageBox{
-    transform: translate(50%, 50%);
+    transform: translate(800px, 0%);
     height: 400px;
     width: 400px;
     border: 2px solid;
     overflow: auto;
 }
 
+
+
 #InputBox{
-    transform: translate(50%, 50%);
+    transform: translate(800px, 0%);
     width: 400px;
     margin-top: 8%;
     position: relative;

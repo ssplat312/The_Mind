@@ -1,3 +1,4 @@
+//Server part of script
 var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "sql3.freesqldatabase.com",
@@ -9,16 +10,18 @@ var con = mysql.createConnection({
 
 
 const { randomInt } = require('crypto');
+
+const express = require('express');
+const path = require('path');
+const { hostname } = require('os');
+const app = express();
+
+
 const clients = [];
 const clientsReady = {};
 const clientsPlaying = [];
 const allMessages = [];
-const express = require('express');
-const path = require('path');
-const app = express();
-//Will first equal 4000, then randomInt(0, 60000)
 var portNum = randomInt(0, 60000);
-//Make the port number always equal 4000, but make the url name the client id.
 const Server = require('http').createServer(app); 
 var ServerName = "";
 var HostName = "";
@@ -27,6 +30,7 @@ io.on('connection', socket => {
     socket.data.isHost = false;
     socket.data.isReady = false;
     socket.data.userName = "";
+    socket.data.PeronsalInfo = {};
     console.log(socket.data);
     clients.push(socket);
     console.log("Client connected");
@@ -43,6 +47,7 @@ io.on('connection', socket => {
         }
 
        socket.data.isHost = true;
+       /*
         console.log("Connected to sql");
         var insertData = `INSERT INTO sql3764497.ServerInfo (ServerName, ServerID, PortNum, HostName) VALUES ('${newServerName}', '${uri}', ${portNum}, '${HostName}')`;
             con.query(insertData, function(err, results) {
@@ -54,8 +59,10 @@ io.on('connection', socket => {
                 HostName = userName;
                 console.log("Added to sql");
             });
+            */
    });
 
+   /*
     socket.on("ChangeServer", (newServerName) => {
             var selectData = `SELECT * FROM sql3764497.ServerInfo WHERE ServerName = ` + mysql.escape(newServerName) ;
             con.query(selectData, function(err, results){
@@ -70,6 +77,7 @@ io.on('connection', socket => {
             });
 
     });
+    */
 
     socket.on("GetMessageReady", (message) => {
         if(socket.data.userName == "")
@@ -141,7 +149,7 @@ io.on('connection', socket => {
 function RemoveServer()
 {
     
-    
+    /*
         var deleteData = "DELETE FROM sql3764497.ServerInfo Where ServerName = " + mysql.escape(ServerName);
         con.query(deleteData, function(err, results){
             if(err)
@@ -150,6 +158,7 @@ function RemoveServer()
             }
         });
         ServerName = "";
+        */
 
 }
 
@@ -180,6 +189,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(express.static("/workspaces/The_Mind/static"));
 
+//Basic functions/variables of website
 var cardsLeft = 0;
 var gameName = "";
 var isfullRun = false;
@@ -190,13 +200,61 @@ function ReadyClient(clientID)
 {
     
 }
+
+
+//For moving and getting server data and going to new parts of website
 app.get("/", (req,res) =>{
     ipAdress = req.ip;
     res.sendFile(path.join(__dirname, 'MenuScreen.html'));
 });
 
 
+app.post("/SetPersonalInfo", (req, res) => {
+    const newPersonalInfo = `Email = ${req.body.Email}\nPassword = ${req.body.Password}\n`;
+    for(let i = 0; i < clients.length(); i++)
+    {
+        if(clients[i].data.userName == req.body.Username)
+        {  
+            clients[i].data.PeronsalInfo = {Email: req.body.Email, Password: req.body.Password};
+            break;
+        }
+
+    }
+});
+
+app.get("/GetPersonalInfo",(req, res) => {
+    for(let i = 0; i < clients.length; i++)
+    {
+        if(clients[i].data.userName == req.body.Username)
+        {
+            res.json(clients[i].data.PeronsalInfo);
+            break;
+        }
+    }
+});
+
+app.post("/SetServerName", (req, res) => {
+    ServerName = req.body.ServerN;
+});
+
+app.post("/SetHostName", (req, res) => {
+    HostName = req.body.hostName;
+});
+
+app.get("/GetServerName", (req, res) => {
+    let tempServerName = ServerName != "" ? ServerName:"Nothing"
+    serverNameData = {ServerN :tempServerName};
+    res.json(serverNameData);
+});
+
+app.get("/GetHostName", (req, res) => {
+    let tempHostName = HostName != "" ? HostName:"Nothing"
+    hostData = {Host: tempHostName};
+    res.json(hostData);
+});
+
 app.get("/ShowServers", (req, res) => {
+    /*
     let serverQuery = "SELECT * FROM sql3764497.ServerInfo";
     con.query(serverQuery, (err, results) => {
         if(err)
@@ -208,6 +266,7 @@ app.get("/ShowServers", (req, res) => {
 
 
     });
+    */
 });
 
 

@@ -34,13 +34,20 @@
         <div id="MakeServerForm">
             <p>Enter a server Name here</p>
             <input type="text" placeholder="Enter server name here" id="MakeServerInput">
-            <input type="button" value="Make new server" name="MakeServer" onclick="GetServersForCheck()">
+            <input type="button" value="Make new server" name="MakeServer" onclick="SetServerName()">
         </div>
+            <label>You are inviting everyone below</label>
+            <ul id="Emails"></ul>
+            <input id="EmailInput" type="text" placeholder="Enter email here">
+            <input type="button" value="Add Email" onclick="AddEmail()">
+            <label>What do you want to say?</label>
+            <input id="EmailBody" type="text" placeholder="Enter what you want to say in your invite?">
+            <input type="button" value="Send Invite" onclick="SendEmailInvite()">
         <div id="UserNameMaker">
             <input type="text" id="UserNameInput" placeholder="Enter the username you want to use here.">
             <button onclick="SetUserName()">Set Username</button>
         </div>
-        <div id="SearchDropdown">
+       <!-- <div id="SearchDropdown">
             <button id="DropdownButton" onclick="ClearSearch()">Clear Search</button>
             <div id="SearchMenu" class="SearchContents">
                 <input type="text" id="SearchBar" onkeyup="GetServersForSearch()" onfocus="GetServersForSearch()" placeholder="Search Servers">
@@ -49,16 +56,22 @@
                 </div>
             </div>
         </div>
-        <div id="MessageBox">
-        </div>
+       -->
+        <main>
+            <p id="UsernameDisplay">Your Username: </p>
+            <p id="ServerNameDisplay">Current Server: </p>
+            <p id="HostDisplay">Host's name: </p>
+            <div id="MessageBox">
+            </div>
+        </main>
 
         <form id="MessageForm">
             <input type="text" id="InputBox"  value="">
-            <input type="submit"  value="Send" style="transform: translate(50%, 50%); margin-top: 8%; margin-left: 7%;">
+            <input type="submit"  value="Send" style="transform: translate(800px, -15%); margin-top: 8%; margin-left: 7%;">
         </form>
-        <form>
-            <input type="">
-        </form>
+      
+        <script src="https://smtpjs.com/v3/smtp.js"></script>
+        <!--Server/Messaging script-->
        <script src="/SetupWinText.js"></script>
        <script src = "/socket.io/socket.io.js"></script>
         <script>
@@ -70,6 +83,65 @@
             const sendForm = document.getElementById("MessageForm");
             const inputArea = document.getElementById("InputBox");
             const userNameInput = document.getElementById("UserNameInput");
+            const UserNameDispalyText = document.getElementById("UsernameDisplay");
+            const ServerNameDispalyText = document.getElementById("ServerNameDisplay");
+            const HostNameDispalyText = document.getElementById("HostDisplay");
+
+            //Sends email to desired people
+            function AddEmail()
+            {
+                const emailInput = document.getElementById("EmailInput");
+                const tempElement = document.createElement("li");
+                tempElement.appendChild(document.createTextNode(emailInput.value));
+                emailInput.value = "";
+                document.getElementById("Emails").appendChild(tempElement);
+            }
+
+            function SendEmailInvite()
+            {
+                const EmailBody = document.getElementById("EmailBody");
+                fetch("/GetHostName").then(response => response.json()).then(hostName => {
+                    if(hostName.Host != userName)
+                    {
+                        EmailBody.value = "";
+                        EmailBody.placeholder = "You have to be a host of a server to send invites.";   
+                        return;
+                    }
+                });
+                const emailList = document.getElementById("Emails");
+                let emails = "";
+                let totalEmails = emailList.childElementCount;
+                for(let i = 0; i < totalEmails; i++)
+                {
+                    emails += emailList.children[i].innerText;
+                    if(i < totalEmails - 1)
+                    {
+                        emails += ", ";
+                    }   
+                }
+                let subject = `Invitation to join ${userName}'s game on ${serverName} Server`;
+                let uri = socket.io.uri;
+                let body = `${EmailBody.value}\nClcik here to join ${userName}'s game:${uri}`;
+                console.log(emails);
+                console.log(subject);
+                console.log(body);
+                window.open(`mailto:${emails}?subject=${subject}&body=${body}`);
+                EmailBody.value = "";
+                EmailBody.placeholder = "Invites Sent!";   
+            }
+
+            function SetPersonalInfoFront()
+                {
+                    fetch("/SetPersonalInfo", {
+                        method: "post",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({Email:"poppy.rivers", Password:"newPass", Username:userName})
+                    });
+                }
+
+
             userNameInput.addEventListener("keydown", ()=> {
                 userNameInput.style.backgroundColor = "white";
             });
@@ -98,6 +170,47 @@
                 socket.emit("SetUserName", userName);
             }
 
+            //The server, username, and hostname text setter
+            function SetInfoText()
+            {
+                SetUserNameText();
+                SetServerNameText();
+                SetHostText();
+            }
+
+            function SetUserNameText()
+            {
+                console.log("Setting username")
+                let newUserText = "Username: nothing";
+                if(userName != "")
+                {
+                    newUserText = `Username: ${userName}`;
+                }
+
+                UserNameDispalyText.innerText = newUserText;
+            }
+
+            function SetServerNameText()
+            {  
+                console.log("Setting server name");
+                fetch("/GetServerName").then(response => response.json()).then(serverData => {
+                    console.log(serverData);
+                    serverName = serverData.ServerN;
+                    let newServerText = `Server name: ${serverData.ServerN}`;
+                    ServerNameDispalyText.innerText = newServerText;
+                });
+            }
+
+            function SetHostText()
+            {
+                console.log("Setting host name");
+                fetch("/GetHostName").then(response => response.json()).then(hostData => {
+                    hostName = hostData.Host;
+                    let newHostText = `Host name: ${hostData.Host}`;
+                    HostNameDispalyText.innerText = newHostText;
+                });
+            }
+            
             function SerachServers(ServersAvalible)
             {
                 const SearchBar = document.getElementById("SearchBar");
@@ -126,14 +239,61 @@
 
             }
 
-            function GetServersForSearch()
+            /*function GetServersForSearch()
             {
                 fetch("/ShowServers").then(response =>{return response.json();})
                 .then(Servers => {
                     SerachServers(Servers);
                 });
               
+            }*/
+            
+            function SetServerName()
+            {
+                console.log(userName);
+                if(userName == "")
+                {
+                    serverText.value = "";
+                    serverText.placeholder = "You need to set a username before you make a server";
+                    return;
+                }
+                let newServerName = serverText.value.trim().toLowerCase();
+                let serverNameSent = serverText.value;
+
+                serverText.value = "";
+                if(newServerName == "")
+                {
+                    serverText.placeholder = "You can't have nothing as your server name dumba**";
+                    serverText.style.backgroundColor = "red";
+                    return;
+                }
+
+                serverName = serverNameSent;
+
+                fetch("/SetServerName", {
+                    method: "post",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ServerN:serverNameSent})
+                });
+
+                fetch("/SetHostName", {
+                    method: "post",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({hostName:userName})
+                });
+
+                SetServerNameText();
+                SetHostText();
+
+                socket.emit("ShowPastMessages");
+                socket.emit("GetMessageReady", "joined");
             }
+
+            /*
 
             function GetServersForCheck()
             {
@@ -174,22 +334,23 @@
                 serverText.placeholder = `${newServerName} is avliable, enjoy!`;
                 serverText.style.backgroundColor = "green";
                 serverName = servenNameSent;
-                socket.emit("MakeServer", servenNameSent, socket.io.uri, "Ssplat");
+                socket.emit("MakeServer", servenNameSent, socket.io.uri, userName);
                 socket.emit("ShowPastMessages");
                 socket.emit("GetMessageReady", "joined");
             }
-
+F
             function ChangeServer(newServerName)
             {
                 socket.emit("ChangeServer", newServerName);
             }
 
-        
+            */
             sendForm.addEventListener("submit", (event) => {
                 event.preventDefault();
                 if(inputArea.value.trim() != "")
                 {
                     let inputValue = inputArea.value
+                    inputArea.value = "";
                     console.log(socketData);
                     
                     if(userName == "")
@@ -201,6 +362,7 @@
                     if(serverName == "")
                     {
                         inputArea.placeholder = "Create or join a server before you join."
+                        return;
                     }
                     socket.emit("GetMessageReady", inputValue);
                 }
@@ -228,6 +390,7 @@
                         socket.emit("ShowPastMessages");
                         socket.emit("GetMessageReady", "joined");
                     }
+                    SetUserNameText();
                     userNameInput.placeholder  = `${userName} is your username now! Enjoy!`;
                     userNameInput.style.backgroundColor = "green";
                 });
@@ -247,8 +410,14 @@
                     socket = io(newUrl);
                     console.log(newUrl);
                     window.location.href = newUrl;
+                    ServerNameDispalyText.innerText = `Server name: ${serverName}`;
+                    
                 });
                 
+                SetInfoText();
+                
+    
+
                 
         </script>
     </body>
