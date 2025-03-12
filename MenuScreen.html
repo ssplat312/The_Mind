@@ -4,14 +4,14 @@
         <link rel="stylesheet" type="text/css" href="/GeneralStyles.css">
     </head>
     <body>
-        <form action="/startCustomGame" method="post">
+        <form id="CustomGameForm" action="/startCustomGame" method="post" hidden="true">
             <label for="cardAmount">Choose the amount of cards you want</label>
             <input type="range" min="1" max="100" value="1" name="cardAmount" oninput="this.nextElementSibling.value = this.value">
             <output>1</output>
             <input type="submit" value="Create Game">
         </form>
         <form action="/startGameFromLevel" method="post">
-            <div id="LevelButtons">
+            <div id="LevelButtons" hidden="true">
                 <label for="cardAmount">What level do you want to play?</label>
                 <button  type="submit" name="cardAmount" value="10">Level 10</button>
                 <button  type="submit" name="cardAmount" value="9">Level 9</button>
@@ -25,7 +25,7 @@
                 <button  type="submit" name="cardAmount" value="1">Level 1</button>
             </div>
         </form> 
-        <form action="/startFullGame" method="post">
+        <form id="FullGameForm" action="/startFullGame" method="post" hidden="true">
             <label for="cardAmount">Click here to play a full run</label>
             <button type="submit" name="cardAmount" value="1">Start Run</button>
         </form>
@@ -36,6 +36,7 @@
             <input type="text" placeholder="Enter server name here" id="MakeServerInput">
             <input type="button" value="Make new server" name="MakeServer" onclick="SetServerName()">
         </div>
+        <div id="EmailContainer">
             <label>You are inviting everyone below</label>
             <ul id="Emails"></ul>
             <input id="EmailInput" type="text" placeholder="Enter email here">
@@ -43,6 +44,8 @@
             <label>What do you want to say?</label>
             <input id="EmailBody" type="text" placeholder="Enter what you want to say in your invite?">
             <input type="button" value="Send Invite" onclick="SendEmailInvite()">
+        </div>
+
         <div id="UserNameMaker">
             <input type="text" id="UserNameInput" placeholder="Enter the username you want to use here.">
             <button onclick="SetUserName()">Set Username</button>
@@ -70,7 +73,6 @@
             <input type="submit"  value="Send" style="transform: translate(800px, -15%); margin-top: 8%; margin-left: 7%;">
         </form>
       
-        <script src="https://smtpjs.com/v3/smtp.js"></script>
         <!--Server/Messaging script-->
        <script src="/SetupWinText.js"></script>
        <script src = "/socket.io/socket.io.js"></script>
@@ -82,11 +84,28 @@
             socket.emit("GetSocketData");
             const sendForm = document.getElementById("MessageForm");
             const inputArea = document.getElementById("InputBox");
+
             const userNameInput = document.getElementById("UserNameInput");
+            userNameInput.addEventListener("keydown", ()=> {
+                userNameInput.style.backgroundColor = "white";
+            });
+
             const UserNameDispalyText = document.getElementById("UsernameDisplay");
             const ServerNameDispalyText = document.getElementById("ServerNameDisplay");
             const HostNameDispalyText = document.getElementById("HostDisplay");
-
+            const CustomGameForm = document.getElementById("CustomGameForm");
+            const FullGameForm = document.getElementById("FullGameForm");
+            const LevelButtons = document.getElementById("LevelButtons");
+            
+            const EmailForm = document.getElementById("EmailContainer");
+            const severForm = document.getElementById("MakeServerForm");
+            const serverText = document.getElementById("MakeServerInput");
+            serverText.addEventListener("keydown", ()=>{
+                serverText.style.backgroundColor = "white";
+            });
+            
+            inputArea.placeholder  = "Enter your messages here";
+            
             //Sends email to desired people
             function AddEmail()
             {
@@ -121,7 +140,8 @@
                 }
                 let subject = `Invitation to join ${userName}'s game on ${serverName} Server`;
                 let uri = socket.io.uri;
-                let body = `${EmailBody.value}\nClcik here to join ${userName}'s game:${uri}`;
+                let body = `${EmailBody.value}\nClick here to join ${userName}'s game: ${uri}`;
+                body = encodeURIComponent(body);
                 console.log(emails);
                 console.log(subject);
                 console.log(body);
@@ -142,17 +162,7 @@
                 }
 
 
-            userNameInput.addEventListener("keydown", ()=> {
-                userNameInput.style.backgroundColor = "white";
-            });
-
-            const severForm = document.getElementById("MakeServerForm");
-            const serverText = document.getElementById("MakeServerInput");
-            serverText.addEventListener("keydown", ()=>{
-                serverText.style.backgroundColor = "white";
-            });
-            inputArea.placeholder  = "Enter your messages here";
-            
+           
             socket.on("RecieveSocketData", (sentsocketData) => {
                 socketData = sentsocketData;
                 console.log(socketData);
@@ -207,7 +217,17 @@
                 fetch("/GetHostName").then(response => response.json()).then(hostData => {
                     hostName = hostData.Host;
                     let newHostText = `Host name: ${hostData.Host}`;
+                    if(hostName == "")
+                    {
+                        newHostText = `Host name: Nothing`;
+                    }else if(hostName != userName)      
+                    {
+                        severForm.hidden = true;
+                        EmailForm.hidden = true;
+                    }
+
                     HostNameDispalyText.innerText = newHostText;
+                    
                 });
             }
             
@@ -286,6 +306,9 @@
                     body: JSON.stringify({hostName:userName})
                 });
 
+                CustomGameForm.hidden = false;
+                FullGameForm.hidden = false;
+                LevelButtons.hidden = false;
                 SetServerNameText();
                 SetHostText();
 

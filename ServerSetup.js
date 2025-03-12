@@ -124,6 +124,14 @@ io.on('connection', socket => {
         socket.emit("RecieveSocketData", socket.data);     
     });
 
+    socket.on("ReadyClient", ()=> {
+        socket.data.isReady = true;
+    });
+
+    socket.on("UnreadyClient", ()=> {
+        socket.data.isReady = false;
+    });
+
     socket.on("disconnect", () => {
         userLeaving = socket.data.userName;
         
@@ -248,7 +256,7 @@ app.get("/GetServerName", (req, res) => {
 });
 
 app.get("/GetHostName", (req, res) => {
-    let tempHostName = HostName != "" ? HostName:"Nothing"
+    let tempHostName = HostName != "" ? HostName:""
     hostData = {Host: tempHostName};
     res.json(hostData);
 });
