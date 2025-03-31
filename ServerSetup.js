@@ -19,8 +19,8 @@ const app = express();
 
 const clients = [];
 const clientsReady = {};
-const clientsPlaying = [];
 const allMessages = [];
+let Host = null;
 var portNum = randomInt(0, 60000);
 const Server = require('http').createServer(app); 
 var ServerName = "";
@@ -47,6 +47,7 @@ io.on('connection', socket => {
         }
 
        socket.data.isHost = true;
+       Host = socket;
        /*
         console.log("Connected to sql");
         var insertData = `INSERT INTO sql3764497.ServerInfo (ServerName, ServerID, PortNum, HostName) VALUES ('${newServerName}', '${uri}', ${portNum}, '${HostName}')`;
@@ -114,7 +115,18 @@ io.on('connection', socket => {
                 return;
             }
         });
+        let isChangingName = false;
+        let prevUserName = "";
+        if(socket.data.userName != "")
+        {
+            isChangingName = true;
+            prevUserName = socket.data.userName
+        }
         socket.data.userName = userName;
+        if(socket.data.isHost)
+        {
+            HostName = userName;
+        }
         console.log(socket.data);
         let hasHost = ServerName != "";
         socket.emit('UserNameFree', hasHost);
@@ -126,10 +138,15 @@ io.on('connection', socket => {
 
     socket.on("ReadyClient", ()=> {
         socket.data.isReady = true;
+        if(IsEveryOneReady())
+        {
+            Host.emit("ShowPlayButton");
+        }
     });
 
     socket.on("UnreadyClient", ()=> {
         socket.data.isReady = false;
+        Host.emit("HidePlayButton");
     });
 
     socket.on("disconnect", () => {
@@ -153,6 +170,21 @@ io.on('connection', socket => {
 
 });
 
+
+
+function IsEveryOneReady()
+{
+ 
+    for(let i = 0; i <= clients.length; i++)
+    {
+        if(clients[i].data.isReady == false)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 function RemoveServer()
 {
@@ -250,7 +282,7 @@ app.post("/SetHostName", (req, res) => {
 });
 
 app.get("/GetServerName", (req, res) => {
-    let tempServerName = ServerName != "" ? ServerName:"Nothing"
+    let tempServerName = ServerName != "" ? ServerName:""
     serverNameData = {ServerN :tempServerName};
     res.json(serverNameData);
 });
@@ -284,7 +316,7 @@ app.post("/startGameFromLevel", (req, res) =>
     cardsLeft = parseInt(req.body.cardAmount);
     gameName = "Level " + req.body.cardAmount + " (Custom Game)";
     isfullRun = false;
-    res.sendFile(path.join(__dirname, 'MainPage.html'));
+    ChangeWebsiteForEveryone();
 });
 
 app.post("/startCustomGame", (req, res) =>
@@ -292,21 +324,38 @@ app.post("/startCustomGame", (req, res) =>
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Custom Game";
         isfullRun = false;
-        res.sendFile(path.join(__dirname, 'MainPage.html'));
+        ChangeWebsiteForEveryone();
     });
 
 app.post("/startFullGame", (req, res) =>
     {
+        
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Level " + req.body.cardAmount;
         isfullRun = true;
-        res.sendFile(path.join(__dirname, 'MainPage.html'));
+        ChangeWebsiteForEveryone();
     });
 
-
+function ChangeWebsiteForEveryone()
+{
+    clients.forEach(client => {
+        client.emit("ChangeWebiste");
+    });
+}
 
 app.get("/getGameData", (req, res) => {
     data = {CardsLeft: cardsLeft, GameName: gameName, FullRun: isfullRun};
+    res.json(data);
+});
+
+app.get("/getHasHost", (req, res) => {
+    data = {HasHost: false};
+    if(HostName != "")
+    {
+        data.HasHost = true;
+    }
+    console.log(HostName);
+    console.log(data);
     res.json(data);
 });
 
@@ -328,7 +377,7 @@ app.post("/setCardsInOrder", (req, res) =>{
         cardsInOrder.push(card);
     });
     cardsInOrder = SortCards(cardsInOrder);
-
+    console.log("Sorted Cards");
 });
 
 app.post("/checkCardsInOrder", (req, res) =>{

@@ -1,4 +1,3 @@
-
 let avalibleCards = [];
 let selectedCards = [];
 let cardsinHand = [];
@@ -9,6 +8,13 @@ var canSelect = true;
 var roundOver = false;
 var fullRun = false;
 var cardsLeft = 0;
+
+function SetCardElements()
+{
+    hand = document.getElementById("Hand");
+    pile = document.getElementById("Pile"); 
+}
+
 function ResetCards()
 {
     avalibleCards = [];
@@ -27,7 +33,7 @@ function SetHand(handSize, gameName)
     pile.replaceChildren();
     var cardList = [];
     var cardVal = [];
-    for(var i = 0; i < handSize; i++)
+    for(let i = 0; i < handSize; i++)
     {
         if(i >= 100)
         {
@@ -69,6 +75,7 @@ function SetCardsPosition()
         cards[i].style.marginLeft = String(lMargin) + "px";
         lMargin += 90;
     }
+    console.log("Setting Deck");
     //Add code here to center deck
 }
 

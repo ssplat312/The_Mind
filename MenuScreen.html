@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html id="HtmlContents">
     <head>
         <link rel="stylesheet" type="text/css" href="/GeneralStyles.css">
+        <link rel="stylesheet" type="text/css" href="/CardStyle.css">
+        <link rel="text" type="text" href="/MainPageHTMLText.txt">
     </head>
-    <body>
+    <body id="MainBody">
+        <div id="MainBodyContents">
         <form id="CustomGameForm" action="/startCustomGame" method="post" hidden="true">
             <label for="cardAmount">Choose the amount of cards you want</label>
             <input type="range" min="1" max="100" value="1" name="cardAmount" oninput="this.nextElementSibling.value = this.value">
             <output>1</output>
             <input type="submit" value="Create Game">
         </form>
+        <!--Change how games start to adjust for readying up-->
         <form action="/startGameFromLevel" method="post">
             <div id="LevelButtons" hidden="true">
                 <label for="cardAmount">What level do you want to play?</label>
@@ -29,6 +33,8 @@
             <label for="cardAmount">Click here to play a full run</label>
             <button type="submit" name="cardAmount" value="1">Start Run</button>
         </form>
+        <button id="ReadyButton" hidden="true">Ready Up</button>
+        <button id="PlayButton" hidden="true">Play Game</button>
         <p id="WinStatus">Win text goes here</p>
 
         <div id="MakeServerForm">
@@ -66,21 +72,26 @@
             <p id="HostDisplay">Host's name: </p>
             <div id="MessageBox">
             </div>
+            
         </main>
-
+        <button onclick="TestReplace()">Test</button>
         <form id="MessageForm">
             <input type="text" id="InputBox"  value="">
             <input type="submit"  value="Send" style="transform: translate(800px, -15%); margin-top: 8%; margin-left: 7%;">
         </form>
-      
+        </div>
         <!--Server/Messaging script-->
        <script src="/SetupWinText.js"></script>
+       <script src="/CardCode.js"></script>
        <script src = "/socket.io/socket.io.js"></script>
         <script>
+            
             let socket = io();
             var userName = "";
             var serverName = "";
             var socketData = [];
+            var isHost = false;
+            var hasHostGlobal = false;
             socket.emit("GetSocketData");
             const sendForm = document.getElementById("MessageForm");
             const inputArea = document.getElementById("InputBox");
@@ -96,10 +107,25 @@
             const CustomGameForm = document.getElementById("CustomGameForm");
             const FullGameForm = document.getElementById("FullGameForm");
             const LevelButtons = document.getElementById("LevelButtons");
-            
+           
             const EmailForm = document.getElementById("EmailContainer");
             const severForm = document.getElementById("MakeServerForm");
             const serverText = document.getElementById("MakeServerInput");
+
+            socket.on("ChangeWebiste", ()=>{
+                TestReplace();
+            });
+            
+            function TestReplace()
+            {
+                const fileURL = "/MainPageHTMLText.txt";
+                fetch(fileURL).then(r => r.text()).then(text => {
+                    document.getElementById("MainBody").style.backgroundColor = "wheat";
+                    document.getElementById("MainBodyContents").innerHTML = text;
+                    SetCardElements();
+                });
+            }
+
             serverText.addEventListener("keydown", ()=>{
                 serverText.style.backgroundColor = "white";
             });
@@ -116,17 +142,29 @@
                 document.getElementById("Emails").appendChild(tempElement);
             }
 
-            function SendEmailInvite()
+            async function SendEmailInvite()
             {
+                if(isHost == false && hasHostGlobal == true)
+                {
+                    return;
+                }
+                var canSend = true;
+                console.log(canSend);
                 const EmailBody = document.getElementById("EmailBody");
-                fetch("/GetHostName").then(response => response.json()).then(hostName => {
-                    if(hostName.Host != userName)
+                await fetch("/GetHostName").then(response => response.json()).then(HostNameJson => {
+                    if(HostNameJson.Host == "")
                     {
                         EmailBody.value = "";
                         EmailBody.placeholder = "You have to be a host of a server to send invites.";   
-                        return;
+                        canSend = false;
                     }
                 });
+                console.log(canSend);
+                if(!canSend)
+                {
+                    return;
+                }
+
                 const emailList = document.getElementById("Emails");
                 let emails = "";
                 let totalEmails = emailList.childElementCount;
@@ -200,6 +238,18 @@
                 UserNameDispalyText.innerText = newUserText;
             }
 
+            async function SetServerNameBackEnd(serverNameSent)
+            {
+                await fetch("/SetServerName", {
+                    method: "post",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ServerN:serverNameSent})
+                });
+
+            }
+
             function SetServerNameText()
             {  
                 console.log("Setting server name");
@@ -207,9 +257,25 @@
                     console.log(serverData);
                     serverName = serverData.ServerN;
                     let newServerText = `Server name: ${serverData.ServerN}`;
+                    if(serverName == "")
+                    {
+                        newServerText = `Server name: Nothing`;
+                    }
                     ServerNameDispalyText.innerText = newServerText;
                 });
             }
+            
+            async function SetHostName()
+            {
+                await fetch("/SetHostName", {
+                    method: "post",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({hostName:userName})
+                });
+            }
+            
 
             function SetHostText()
             {
@@ -268,8 +334,12 @@
               
             }*/
             
-            function SetServerName()
+            async function SetServerName()
             {
+                if(isHost == false && hasHostGlobal == true)
+                {
+                    return;
+                }
                 console.log(userName);
                 if(userName == "")
                 {
@@ -280,40 +350,30 @@
                 let newServerName = serverText.value.trim().toLowerCase();
                 let serverNameSent = serverText.value;
 
-                serverText.value = "";
                 if(newServerName == "")
                 {
+                    serverText.value = "";
                     serverText.placeholder = "You can't have nothing as your server name dumba**";
                     serverText.style.backgroundColor = "red";
                     return;
                 }
 
+                
                 serverName = serverNameSent;
 
-                fetch("/SetServerName", {
-                    method: "post",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ServerN:serverNameSent})
-                });
+                SetServerNameBackEnd(serverNameSent).then(SetServerNameText());
+                SetHostName().then(SetHostText());
+                
 
-                fetch("/SetHostName", {
-                    method: "post",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({hostName:userName})
-                });
-
+                isHost = true;
                 CustomGameForm.hidden = false;
                 FullGameForm.hidden = false;
                 LevelButtons.hidden = false;
-                SetServerNameText();
-                SetHostText();
+                serverText.value = "";
 
                 socket.emit("ShowPastMessages");
                 socket.emit("GetMessageReady", "joined");
+
             }
 
             /*
@@ -388,14 +448,24 @@ F
                         return;
                     }
                     socket.emit("GetMessageReady", inputValue);
+
                 }
             });
 
             
 
                 socket.on("Message", (message, clientId) => {
-                    textEle = document.createElement('p');
+                    console.log(hasHostGlobal);                    
+                    let textEle = document.createElement('p');
                     console.log(message);
+                    try{
+                        testUrl = new URL(message);
+                        console.log(testUrl);
+                        console.log(`${message} is a url`);
+                    } catch
+                    {
+                        console.log(`${message} is not a url`);
+                    }
                     textEle.innerText = message;
                     if(clientId == socket.id)
                     {
@@ -414,6 +484,7 @@ F
                         socket.emit("GetMessageReady", "joined");
                     }
                     SetUserNameText();
+                    SetHostText();
                     userNameInput.placeholder  = `${userName} is your username now! Enjoy!`;
                     userNameInput.style.backgroundColor = "green";
                 });
@@ -424,6 +495,10 @@ F
                     userNameInput.placeholder  = `${userNameHolder} is taken, please input a different name`;
                     userNameInput.style.backgroundColor = "red";
 
+                });
+
+                socket.on("HostChanged", ()=>{
+                    SetHostText();
                 });
                 
                 socket.on("ConnectToNewServer", (uri) =>{
@@ -437,9 +512,27 @@ F
                     
                 });
                 
+                socket.on("ShowPlayButton", () => {
+                    document.getElementById("PlayButton").hidden = false;
+                });
+
+                socket.on("HidePlayButton", () => {
+                    document.getElementById("PlayButton").hidden = false;
+                });
+
+                async function SetHasHost()
+                {
+                    await fetch("/getHasHost").then(response => response.json()).then(HasHostData => {
+                        console.log(HasHostData);
+                        hasHostGlobal = HasHostData.HasHost;
+                       
+                    });
+                }
                 SetInfoText();
                 
-    
+                SetHasHost();
+                
+                
 
                 
         </script>
