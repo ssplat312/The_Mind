@@ -4,6 +4,7 @@
         <link rel="stylesheet" type="text/css" href="/GeneralStyles.css">
         <link rel="stylesheet" type="text/css" href="/CardStyle.css">
         <link rel="text" type="text" href="/MainPageHTMLText.txt">
+        <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
     </head>
     <body id="MainBody">
         <div id="MainBodyContents">
@@ -116,10 +117,10 @@
                 TestReplace();
             });
             
-            function TestReplace()
+            async function TestReplace()
             {
                 const fileURL = "/MainPageHTMLText.txt";
-                fetch(fileURL).then(r => r.text()).then(text => {
+                await fetch(fileURL).then(r => r.text()).then(text => {
                     document.getElementById("MainBody").style.backgroundColor = "wheat";
                     document.getElementById("MainBodyContents").innerHTML = text;
                     SetCardElements();
@@ -240,13 +241,14 @@
 
             async function SetServerNameBackEnd(serverNameSent)
             {
-                await fetch("/SetServerName", {
+                let ServerNameData = {ServerN:serverNameSent};
+                await fetch("/SetServerNameServerSide", {
                     method: "post",
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ServerN:serverNameSent})
-                });
+                    body: JSON.stringify(ServerNameData)
+                }).then(SetServerNameText());
 
             }
 
@@ -265,15 +267,16 @@
                 });
             }
             
-            async function SetHostName()
+            async function SetHostNameBackEnd()
             {
-                await fetch("/SetHostName", {
+                let HostNameData = {hostName:userName};
+                await fetch("/SetHostNameServerSide", {
                     method: "post",
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({hostName:userName})
-                });
+                    body: JSON.stringify(HostNameData)
+                }).then(SetHostText());
             }
             
 
@@ -361,8 +364,8 @@
                 
                 serverName = serverNameSent;
 
-                SetServerNameBackEnd(serverNameSent).then(SetServerNameText());
-                SetHostName().then(SetHostText());
+                SetServerNameBackEnd(serverNameSent);
+                SetHostNameBackEnd();
                 
 
                 isHost = true;
@@ -458,14 +461,7 @@ F
                     console.log(hasHostGlobal);                    
                     let textEle = document.createElement('p');
                     console.log(message);
-                    try{
-                        testUrl = new URL(message);
-                        console.log(testUrl);
-                        console.log(`${message} is a url`);
-                    } catch
-                    {
-                        console.log(`${message} is not a url`);
-                    }
+                  
                     textEle.innerText = message;
                     if(clientId == socket.id)
                     {

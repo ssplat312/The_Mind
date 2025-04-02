@@ -236,6 +236,8 @@ var isfullRun = false;
 var winStatus = "";
 var cardsInOrder = [];
 
+let avaliableCards = [];
+
 function ReadyClient(clientID)
 {
     
@@ -273,11 +275,11 @@ app.get("/GetPersonalInfo",(req, res) => {
     }
 });
 
-app.post("/SetServerName", (req, res) => {
+app.post("/SetServerNameServerSide", (req, res) => {
     ServerName = req.body.ServerN;
 });
 
-app.post("/SetHostName", (req, res) => {
+app.post("/SetHostNameServerSide", (req, res) => {
     HostName = req.body.hostName;
 });
 
@@ -292,6 +294,8 @@ app.get("/GetHostName", (req, res) => {
     hostData = {Host: tempHostName};
     res.json(hostData);
 });
+
+
 
 app.get("/ShowServers", (req, res) => {
     /*
@@ -336,8 +340,35 @@ app.post("/startFullGame", (req, res) =>
         ChangeWebsiteForEveryone();
     });
 
+app.get("/GetAvaliableCards", (req, res) => {
+    let avaliableCardsJson = {AvaliableCards: avaliableCards};
+    console.log("Avalible cards");
+    console.log(avaliableCardsJson);
+    res.json(avaliableCardsJson);
+});
+
+    
+app.post("/removeUsedCards", (req, res) => {
+    let usedCards = req.body.CardsUsed;
+    console.log(usedCards);
+    usedCards.forEach(card => {
+        let cardIndex = avaliableCards.indexOf(card);
+        console.log(cardIndex);
+        avaliableCards.splice(cardIndex, 1);
+    });
+});
+function ResetAvaliableCards()
+{
+    for(let i = 1; i <= 100; i++)
+    {
+        avaliableCards.push(String(i));
+    }
+    console.log(avaliableCards);
+}
+
 function ChangeWebsiteForEveryone()
 {
+    ResetAvaliableCards();
     clients.forEach(client => {
         client.emit("ChangeWebiste");
     });

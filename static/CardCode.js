@@ -1,3 +1,4 @@
+
 let avalibleCards = [];
 let selectedCards = [];
 let cardsinHand = [];
@@ -13,26 +14,50 @@ function SetCardElements()
 {
     hand = document.getElementById("Hand");
     pile = document.getElementById("Pile"); 
+    SetElementListeners();
 }
 
-function ResetCards()
+function SetElementListeners()
 {
-    avalibleCards = [];
-    for(var i = 1; i <= 100; i++)
-    {
-        avalibleCards.push(String(i));
-    }
+    hand.addEventListener("click", function(event){
+
+        if(FindIndex(event.target.classList, "Card") != -1 && canSelect && roundOver == false)
+        {
+            let curCard = event.target;
+            cardIndex = FindIndex(selectedCards, curCard);
+            if(cardIndex != -1)
+            {
+                curCard.classList.remove("active");
+                selectedCards.splice(cardIndex, 1);
+            }else
+            {
+                curCard.classList.add("active");
+                selectedCards.push(curCard);
+            }
+    
+        }
+    });
+}
+
+async function GetAvalibleCards()
+{
+    await fetch("GetAvaliableCards").then(response => response.json()).then(AvalibleCardsJson => {
+        console.log(AvalibleCardsJson.AvaliableCards);
+        avalibleCards = AvalibleCardsJson.AvaliableCards;
+    });
+
 }
 
 
-function SetHand(handSize, gameName)
+async function SetHand(handSize, gameName)
 {
     document.getElementsByClassName("StickTop")[0].innerText = gameName;
-    ResetCards();
+    await GetAvalibleCards();
+    console.log(avalibleCards);
     hand.replaceChildren();
     pile.replaceChildren();
     var cardList = [];
-    var cardVal = [];
+    var cardsVal = [];
     for(let i = 0; i < handSize; i++)
     {
         if(i >= 100)
@@ -41,6 +66,7 @@ function SetHand(handSize, gameName)
         }
         let selectedCardPos = Math.floor(Math.random() * avalibleCards.length);
         let cardVal = avalibleCards[selectedCardPos];
+        cardsVal.push(cardVal);
         avalibleCards.splice(selectedCardPos, 1);
         const card = document.createElement("p");
         card.innerText = cardVal;
@@ -51,10 +77,18 @@ function SetHand(handSize, gameName)
     cardList.forEach(card => {
         hand.append(card);
         cardsinHand.push(card);
-        cardVal.push(card.innerText);
     });
 
-    cardData = {CardsUsed: cardVal};
+    cardData = {CardsUsed: cardsVal};
+
+    fetch("/removeUsedCards", {
+        method: "post",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cardData)
+    });
+
     fetch("/setCardsInOrder", {
         method: "post",
         headers: {
@@ -78,25 +112,6 @@ function SetCardsPosition()
     console.log("Setting Deck");
     //Add code here to center deck
 }
-
-hand.addEventListener("click", function(event){
-
-    if(FindIndex(event.target.classList, "Card") != -1 && canSelect && roundOver == false)
-    {
-        let curCard = event.target;
-        cardIndex = FindIndex(selectedCards, curCard);
-        if(cardIndex != -1)
-        {
-            curCard.classList.remove("active");
-            selectedCards.splice(cardIndex, 1);
-        }else
-        {
-            curCard.classList.add("active");
-            selectedCards.push(curCard);
-        }
-
-    }
-});
 
 
 function FindIndex(array, value)
