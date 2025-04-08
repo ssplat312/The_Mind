@@ -15,7 +15,7 @@
             <input type="submit" value="Create Game">
         </form>
         <!--Change how games start to adjust for readying up-->
-        <form action="/startGameFromLevel" method="post">
+        <form id="LevelsForm" action="/startGameFromLevel" method="post">
             <div id="LevelButtons" hidden="true">
                 <label for="cardAmount">What level do you want to play?</label>
                 <button  type="submit" name="cardAmount" value="10">Level 10</button>
@@ -107,14 +107,30 @@
             const HostNameDispalyText = document.getElementById("HostDisplay");
             const CustomGameForm = document.getElementById("CustomGameForm");
             const FullGameForm = document.getElementById("FullGameForm");
+            const LevelsForm = document.getElementById("LevelsForm");
+        
             const LevelButtons = document.getElementById("LevelButtons");
            
             const EmailForm = document.getElementById("EmailContainer");
             const severForm = document.getElementById("MakeServerForm");
             const serverText = document.getElementById("MakeServerInput");
+            FullGameForm.addEventListener("submit", (event) => {
+                event.defaultPrevented;
+            });
 
+            LevelsForm.addEventListener("submit", (event) => {
+                event.defaultPrevented;
+            });
+
+            CustomGameForm.addEventListener("submit", (event) => {
+                event.defaultPrevented;
+            });
             socket.on("ChangeWebiste", ()=>{
                 TestReplace();
+            });
+
+            socket.on("NextLevel", (req, res) =>{
+                NextLevel();
             });
             
             async function TestReplace()
@@ -455,7 +471,9 @@ F
                 }
             });
 
-            
+                socket.on("GetCardsLeft", () => {
+                    
+                });
 
                 socket.on("Message", (message, clientId) => {
                     console.log(hasHostGlobal);                    

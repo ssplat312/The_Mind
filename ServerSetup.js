@@ -30,7 +30,7 @@ io.on('connection', socket => {
     socket.data.isHost = false;
     socket.data.isReady = false;
     socket.data.userName = "";
-    socket.data.PeronsalInfo = {};
+    socket.data.cardsLeft = 0;
     console.log(socket.data);
     clients.push(socket);
     console.log("Client connected");
@@ -235,7 +235,7 @@ var gameName = "";
 var isfullRun = false;
 var winStatus = "";
 var cardsInOrder = [];
-
+let totalCards = 100;
 let avaliableCards = [];
 
 function ReadyClient(clientID)
@@ -317,6 +317,7 @@ app.get("/ShowServers", (req, res) => {
 
 app.post("/startGameFromLevel", (req, res) =>
 {
+    SetMaxCards_PlayerCount();
     cardsLeft = parseInt(req.body.cardAmount);
     gameName = "Level " + req.body.cardAmount + " (Custom Game)";
     isfullRun = false;
@@ -333,7 +334,7 @@ app.post("/startCustomGame", (req, res) =>
 
 app.post("/startFullGame", (req, res) =>
     {
-        
+        SetMaxCards_PlayerCount();
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Level " + req.body.cardAmount;
         isfullRun = true;
@@ -357,9 +358,37 @@ app.post("/removeUsedCards", (req, res) => {
         avaliableCards.splice(cardIndex, 1);
     });
 });
+
+function SetMaxCards_PlayerCount()
+{
+    playerAmount = clients.length;
+    maxCards = 100;
+    let addAmount = clients.length - 4;
+    if(addAmount > 0)
+    {
+        maxCards += addAmount * 25;
+    }
+    totalCards = maxCards;
+}
+
+function SetMaxCards_Custom(maxCards)
+{
+    totalCards = maxCards;   
+}
+
+//Makes a socket on function so it can know if its going over itself or other players
+function MakeOtherPlayerCardInfo()
+{
+    let infoText = "";
+    clients.forEach(client => {
+        infoText += `${client.data.userName} has `
+    });
+
+}
+
 function ResetAvaliableCards()
 {
-    for(let i = 1; i <= 100; i++)
+    for(let i = 1; i <= totalCards; i++)
     {
         avaliableCards.push(String(i));
     }
@@ -370,6 +399,7 @@ function ChangeWebsiteForEveryone()
 {
     ResetAvaliableCards();
     clients.forEach(client => {
+        client.data.cardsLeft = cardsLeft;
         client.emit("ChangeWebiste");
     });
 }
@@ -424,6 +454,17 @@ app.post("/checkCardsInOrder", (req, res) =>{
         cardData.LastCard = true;
     }
     res.json(cardData);
+});
+
+app.post("/sendToNextLevel", (req, res) => {
+    ResetAvaliableCards();
+    clients.forEach(client => {
+        client.emit("NextLevel");
+    });
+});
+
+app.post("/returnToMenu", (req, res) => {
+
 });
 
 function SortCards(cardList)

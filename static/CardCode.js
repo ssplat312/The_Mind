@@ -9,6 +9,7 @@ var canSelect = true;
 var roundOver = false;
 var fullRun = false;
 var cardsLeft = 0;
+var totalCards = 0;
 
 function SetCardElements()
 {
@@ -39,6 +40,11 @@ function SetElementListeners()
     });
 }
 
+function ShowOtherPlayerInfo()
+{
+
+}
+
 async function GetAvalibleCards()
 {
     await fetch("GetAvaliableCards").then(response => response.json()).then(AvalibleCardsJson => {
@@ -53,6 +59,7 @@ async function SetHand(handSize, gameName)
 {
     document.getElementsByClassName("StickTop")[0].innerText = gameName;
     await GetAvalibleCards();
+    cardsLeft = handSize;
     console.log(avalibleCards);
     hand.replaceChildren();
     pile.replaceChildren();
@@ -151,6 +158,7 @@ async function PlayCards()
     let waitAmount = 0;
      selectedCards.forEach(card => {
         AddCardMoveAnimation(card, waitAmount, isFirst);
+        cardsLeft--;
         isFirst = false
         waitAmount += 500;
         //Wait till card moves in place to do this
@@ -215,7 +223,7 @@ async function CheckCard(cardText)
         {
             roundOver = true;
             console.log("You won this round");
-            if(fullRun && cardsLeft < 10)
+            if(fullRun && totalCards < 10)
             {
                 document.getElementById("NextLevelButton").hidden = false;
             }else
@@ -226,7 +234,7 @@ async function CheckCard(cardText)
                     winText += "10/10 levels!";
                 }else
                 {
-                    winText += "with " + cardsLeft + " cards in total";
+                    winText += "with " + totalCards + " cards in total";
                 }
 
                 winData = {WinData: winText};
@@ -253,7 +261,7 @@ async function CheckCard(cardText)
             winText += "at " + gameName + " out of 10";
         }else
         {
-            winText += "with " + cardsLeft + " cards in total";
+            winText += "with " + totalCards + " cards in total";
         }
 
         winData = {WinData: winText};
@@ -267,6 +275,11 @@ async function CheckCard(cardText)
         document.getElementById("PlayButton").hidden = true;
         document.getElementById("EndButton").hidden = false;
     }
+}
+
+function GetCardsLeft()
+{
+    return cardsLeft;
 }
 
 function SetCardInPile(card)
@@ -314,18 +327,25 @@ function StartGame()
     .then(gameData =>
         { 
             fullRun = gameData.FullRun;
-            cardsLeft = gameData.CardsLeft;
+            totalCards = gameData.CardsLeft;
             SetHand(gameData.CardsLeft, gameData.GameName);
         });
 
+}
+
+function SendEveryToNextLevel()
+{
+    fetch("/sendToNextLevel", {
+        method: "post"
+    });
 }
 
 function NextLevel()
 {
     roundOver = false;
     document.getElementById("NextLevelButton").hidden = true;
-    cardsLeft++;
-    gameName = "Level " + String(cardsLeft);
-    SetHand(cardsLeft, gameName);
+    totalCards++;
+    gameName = "Level " + String(totalCards);
+    SetHand(totalCards, gameName);
 }
 
