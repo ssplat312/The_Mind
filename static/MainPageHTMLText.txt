@@ -1,5 +1,4 @@
-
- 
+        <p id="OtherPlayersText"></p>
         <button onclick="StartGame()" style="transform: translate(1100px,525px)" id="StartButton">Click when ready</button>
         <p id="WinText"></p>
         <button onclick="SendEveryToNextLevel()" style="transform: translate(1100px,525px)" id="NextLevelButton" hidden='true'>Click when ready</button>

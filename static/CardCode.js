@@ -1,3 +1,4 @@
+const { response } = require("express");
 
 let avalibleCards = [];
 let selectedCards = [];
@@ -42,7 +43,10 @@ function SetElementListeners()
 
 function ShowOtherPlayerInfo()
 {
-
+    const playerInfoElement = document.getElementById("OtherPlayersText");
+    fetch("/GetOtherCardInfo").then(response => response.json()).then(CardsInfoJson => {
+        playerInfoElement.innerText = CardsInfoJson.GameInfoText;
+    });
 }
 
 async function GetAvalibleCards()
@@ -60,6 +64,8 @@ async function SetHand(handSize, gameName)
     document.getElementsByClassName("StickTop")[0].innerText = gameName;
     await GetAvalibleCards();
     cardsLeft = handSize;
+    UpdateCardsLeft();
+    ShowOtherPlayerInfo();
     console.log(avalibleCards);
     hand.replaceChildren();
     pile.replaceChildren();
@@ -161,6 +167,8 @@ async function PlayCards()
         cardsLeft--;
         isFirst = false
         waitAmount += 500;
+        UpdateCardsLeft();
+        ShowOtherPlayerInfo();
         //Wait till card moves in place to do this
     });
 

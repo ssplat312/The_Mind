@@ -149,6 +149,10 @@
             
             inputArea.placeholder  = "Enter your messages here";
             
+            function UpdateCardsLeft()
+            {
+                socket.emit("SetCardsLeft", (GetCardsLeft()));
+            }
             //Sends email to desired people
             function AddEmail()
             {

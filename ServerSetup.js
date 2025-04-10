@@ -107,6 +107,11 @@ io.on('connection', socket => {
         })
     });
 
+    socket.on("SetCardsLeft", (cardsLeft) => {
+        socket.data.cardsLeft = cardsLeft;
+        console.log(socket.data.cardsLeft);
+    });
+
     socket.on("SetUserName", (userName) => {
         clients.forEach(client => {
             if(client.data.userName.trim().toLowerCase() == userName.trim().toLowerCase())
@@ -273,6 +278,16 @@ app.get("/GetPersonalInfo",(req, res) => {
             break;
         }
     }
+});
+
+app.get("/GetOtherCardInfo", (req, res) =>{
+    let otherInfoText = ""
+
+    clients.forEach(client => {
+        otherInfoText += `${client.data.userName}: ${client.data.cardsLeft}\n`
+    });
+
+    res.json({GameInfoText: otherInfoText});
 });
 
 app.post("/SetServerNameServerSide", (req, res) => {
