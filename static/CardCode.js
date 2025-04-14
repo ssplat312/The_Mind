@@ -1,11 +1,10 @@
-const { response } = require("express");
-
 let avalibleCards = [];
 let selectedCards = [];
 let cardsinHand = [];
 let cardsInOrder = [];
-let hand = document.getElementById("Hand");
-let pile = document.getElementById("Pile");
+var hand = null;
+var pile = null;
+var playerInfoElement = null;
 var canSelect = true;
 var roundOver = false;
 var fullRun = false;
@@ -16,6 +15,7 @@ function SetCardElements()
 {
     hand = document.getElementById("Hand");
     pile = document.getElementById("Pile"); 
+    playerInfoElement = document.getElementById("OtherPlayersText");
     SetElementListeners();
 }
 
@@ -43,9 +43,15 @@ function SetElementListeners()
 
 function ShowOtherPlayerInfo()
 {
-    const playerInfoElement = document.getElementById("OtherPlayersText");
     fetch("/GetOtherCardInfo").then(response => response.json()).then(CardsInfoJson => {
         playerInfoElement.innerText = CardsInfoJson.GameInfoText;
+    });
+}
+
+async function UpdateEveryoneCardInfo()
+{
+    await fetch("/UpdatePlayerCardText", {
+        method: "post"
     });
 }
 
@@ -65,7 +71,7 @@ async function SetHand(handSize, gameName)
     await GetAvalibleCards();
     cardsLeft = handSize;
     UpdateCardsLeft();
-    ShowOtherPlayerInfo();
+    UpdateEveryoneCardInfo();
     console.log(avalibleCards);
     hand.replaceChildren();
     pile.replaceChildren();

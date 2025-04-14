@@ -110,6 +110,7 @@ io.on('connection', socket => {
     socket.on("SetCardsLeft", (cardsLeft) => {
         socket.data.cardsLeft = cardsLeft;
         console.log(socket.data.cardsLeft);
+        UpdatePlayerCardText();
     });
 
     socket.on("SetUserName", (userName) => {
@@ -222,6 +223,13 @@ function RemoveClient(clientId)
     console.log("Client does not exist");
 }
 
+function UpdatePlayerCardText()
+{
+    clients.forEach(client => {
+        client.emit("UpdatePlayerInfoText");
+    });
+}
+
 function PrintClients()
 {
     clients.forEach(client => {
@@ -269,6 +277,10 @@ app.post("/SetPersonalInfo", (req, res) => {
     }
 });
 
+app.post("/UpdatePlayerCardText", (req, res) => {
+    UpdatePlayerCardText();
+});
+
 app.get("/GetPersonalInfo",(req, res) => {
     for(let i = 0; i < clients.length; i++)
     {
@@ -281,11 +293,32 @@ app.get("/GetPersonalInfo",(req, res) => {
 });
 
 app.get("/GetOtherCardInfo", (req, res) =>{
-    let otherInfoText = ""
-
+    let otherInfoText = "Player Cards Left\n";
+    let totalCardsLeft = 0;
     clients.forEach(client => {
-        otherInfoText += `${client.data.userName}: ${client.data.cardsLeft}\n`
+        if(client.data.cardsLeft > 1)
+        {
+            otherInfoText += `${client.data.userName}: ${client.data.cardsLeft} cards left\n`;
+        }else if(client.data.cardsLeft == 1)
+        {
+            otherInfoText += `${client.data.userName}: ${client.data.cardsLeft} card left!\n`;
+        }else
+        {
+            otherInfoText += `${client.data.userName} has played his whole hand!\n`;
+        }
+        totalCardsLeft += client.data.cardsLeft;
     });
+    
+    if(totalCardsLeft > 1)
+    {
+        otherInfoText += `There are ${totalCardsLeft} cards left`;
+    }else if(totalCardsLeft == 1)
+    {
+        otherInfoText += `There is only ${totalCardsLeft} card left!`;
+    }else
+    {
+        otherInfoText += "All cards have been played!";
+    }
 
     res.json({GameInfoText: otherInfoText});
 });
@@ -391,15 +424,6 @@ function SetMaxCards_Custom(maxCards)
     totalCards = maxCards;   
 }
 
-//Makes a socket on function so it can know if its going over itself or other players
-function MakeOtherPlayerCardInfo()
-{
-    let infoText = "";
-    clients.forEach(client => {
-        infoText += `${client.data.userName} has `
-    });
-
-}
 
 function ResetAvaliableCards()
 {

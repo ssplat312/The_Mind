@@ -133,6 +133,9 @@
                 NextLevel();
             });
             
+            socket.on("UpdatePlayerInfoText", (req, res) => {
+                ShowOtherPlayerInfo();
+            });
             async function TestReplace()
             {
                 const fileURL = "/MainPageHTMLText.txt";
