@@ -18,7 +18,6 @@ const app = express();
 
 
 const clients = [];
-const clientsReady = {};
 const allMessages = [];
 let Host = null;
 var portNum = randomInt(0, 60000);
@@ -142,19 +141,11 @@ io.on('connection', socket => {
         socket.emit("RecieveSocketData", socket.data);     
     });
 
-    socket.on("ReadyClient", ()=> {
-        socket.data.isReady = true;
-        if(IsEveryOneReady())
-        {
-            Host.emit("ShowPlayButton");
-        }
+    socket.on("ChangeReadyStatus", () => {
+        socket.data.isReady = !socket.data.isReady;
+        console.log(`${socket.data.userName} is ${socket.data.isReady}`)
     });
-
-    socket.on("UnreadyClient", ()=> {
-        socket.data.isReady = false;
-        Host.emit("HidePlayButton");
-    });
-
+    
     socket.on("disconnect", () => {
         userLeaving = socket.data.userName;
         
@@ -180,16 +171,15 @@ io.on('connection', socket => {
 
 function IsEveryOneReady()
 {
- 
-    for(let i = 0; i <= clients.length; i++)
-    {
-        if(clients[i].data.isReady == false)
+    let everyoneReady = true;
+    clients.forEach(client => {
+        if(client.data.isReady == false)
         {
-            return false;
+            everyoneReady = false;
         }
-    }
-
-    return true;
+    });
+   
+    return everyoneReady;
 }
 
 function RemoveServer()
@@ -230,6 +220,13 @@ function UpdatePlayerCardText()
     });
 }
 
+function ShowReadyButton()
+{
+    clients.forEach(client => {
+        client.emit("ShowReadyButton");
+    });
+}
+
 function PrintClients()
 {
     clients.forEach(client => {
@@ -251,12 +248,6 @@ var cardsInOrder = [];
 let totalCards = 100;
 let avaliableCards = [];
 
-function ReadyClient(clientID)
-{
-    
-}
-
-
 //For moving and getting server data and going to new parts of website
 app.get("/", (req,res) =>{
     ipAdress = req.ip;
@@ -275,6 +266,10 @@ app.post("/SetPersonalInfo", (req, res) => {
         }
 
     }
+});
+
+app.get("/IsEveryoneReady", (req, res) => {
+    return res.json({EveryoneReady:IsEveryOneReady()});
 });
 
 app.post("/UpdatePlayerCardText", (req, res) => {
@@ -369,7 +364,7 @@ app.post("/startGameFromLevel", (req, res) =>
     cardsLeft = parseInt(req.body.cardAmount);
     gameName = "Level " + req.body.cardAmount + " (Custom Game)";
     isfullRun = false;
-    ChangeWebsiteForEveryone();
+    ShowReadyButton();
 });
 
 app.post("/startCustomGame", (req, res) =>
@@ -377,7 +372,7 @@ app.post("/startCustomGame", (req, res) =>
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Custom Game";
         isfullRun = false;
-        ChangeWebsiteForEveryone();
+        ShowReadyButton();
     });
 
 app.post("/startFullGame", (req, res) =>
@@ -386,7 +381,7 @@ app.post("/startFullGame", (req, res) =>
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Level " + req.body.cardAmount;
         isfullRun = true;
-        ChangeWebsiteForEveryone();
+        ShowReadyButton();
     });
 
 app.get("/GetAvaliableCards", (req, res) => {
@@ -396,7 +391,14 @@ app.get("/GetAvaliableCards", (req, res) => {
     res.json(avaliableCardsJson);
 });
 
-    
+app.post("/CheckForChangeToGame", (req, res) =>
+{
+    if(IsEveryOneReady())
+    {
+        ChangeWebsiteForEveryone();
+    }
+});
+
 app.post("/removeUsedCards", (req, res) => {
     let usedCards = req.body.CardsUsed;
     console.log(usedCards);
@@ -439,7 +441,7 @@ function ChangeWebsiteForEveryone()
     ResetAvaliableCards();
     clients.forEach(client => {
         client.data.cardsLeft = cardsLeft;
-        client.emit("ChangeWebiste");
+        client.emit("ChangeWebsite");
     });
 }
 

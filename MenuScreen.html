@@ -8,14 +8,14 @@
     </head>
     <body id="MainBody">
         <div id="MainBodyContents">
-        <form id="CustomGameForm" action="/startCustomGame" method="post" hidden="true">
+        <form id="CustomGameForm" method="POST" action="/startCustomGame" hidden="true">
             <label for="cardAmount">Choose the amount of cards you want</label>
             <input type="range" min="1" max="100" value="1" name="cardAmount" oninput="this.nextElementSibling.value = this.value">
             <output>1</output>
             <input type="submit" value="Create Game">
         </form>
         <!--Change how games start to adjust for readying up-->
-        <form id="LevelsForm" action="/startGameFromLevel" method="post">
+        <form id="LevelsForm" method="POST" action="/startGameFromLevel">
             <div id="LevelButtons" hidden="true">
                 <label for="cardAmount">What level do you want to play?</label>
                 <button  type="submit" name="cardAmount" value="10">Level 10</button>
@@ -30,11 +30,10 @@
                 <button  type="submit" name="cardAmount" value="1">Level 1</button>
             </div>
         </form> 
-        <form id="FullGameForm" action="/startFullGame" method="post" hidden="true">
+        <form id="FullGameForm" method="POST" action="/startFullGame"  hidden="true">
             <label for="cardAmount">Click here to play a full run</label>
             <button type="submit" name="cardAmount" value="1">Start Run</button>
         </form>
-        <button id="ReadyButton" hidden="true">Ready Up</button>
         <button id="PlayButton" hidden="true">Play Game</button>
         <p id="WinStatus">Win text goes here</p>
 
@@ -57,6 +56,7 @@
             <input type="text" id="UserNameInput" placeholder="Enter the username you want to use here.">
             <button onclick="SetUserName()">Set Username</button>
         </div>
+        <button id="ReadyButton" onclick="ChangeReadyStatus()" hidden="true">Click if ready</button>
        <!-- <div id="SearchDropdown">
             <button id="DropdownButton" onclick="ClearSearch()">Clear Search</button>
             <div id="SearchMenu" class="SearchContents">
@@ -125,10 +125,13 @@
             CustomGameForm.addEventListener("submit", (event) => {
                 event.defaultPrevented;
             });
-            socket.on("ChangeWebiste", ()=>{
+            socket.on("ChangeWebsite", ()=>{
                 TestReplace();
             });
 
+            socket.on("ShowReadyButton", ()=> {
+                document.getElementById("ReadyButton").hidden = false;
+            });
             socket.on("NextLevel", (req, res) =>{
                 NextLevel();
             });
@@ -136,6 +139,9 @@
             socket.on("UpdatePlayerInfoText", (req, res) => {
                 ShowOtherPlayerInfo();
             });
+
+
+            
             async function TestReplace()
             {
                 const fileURL = "/MainPageHTMLText.txt";
@@ -343,6 +349,16 @@
                 });
             }
             
+            async function ChangeReadyStatus()
+            {
+                await socket.emit("ChangeReadyStatus");
+                
+                await fetch("/CheckForChangeToGame",{ 
+                    method: "post"
+                   }
+                );
+            }
+
             function ClearSearch()
             {
                 const SearchResults = document.getElementById("SearchResults");
