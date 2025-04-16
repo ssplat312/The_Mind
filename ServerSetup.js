@@ -220,6 +220,8 @@ function UpdatePlayerCardText()
     });
 }
 
+
+
 function ShowReadyButton()
 {
     clients.forEach(client => {
@@ -360,6 +362,7 @@ app.get("/ShowServers", (req, res) => {
 
 app.post("/startGameFromLevel", (req, res) =>
 {
+    console.log(req.body.cardAmount);
     SetMaxCards_PlayerCount();
     cardsLeft = parseInt(req.body.cardAmount);
     gameName = "Level " + req.body.cardAmount + " (Custom Game)";
@@ -378,8 +381,8 @@ app.post("/startCustomGame", (req, res) =>
 app.post("/startFullGame", (req, res) =>
     {
         SetMaxCards_PlayerCount();
-        cardsLeft = parseInt(req.body.cardAmount);
-        gameName = "Level " + req.body.cardAmount;
+        cardsLeft = 1;
+        gameName = "Level " + 1;
         isfullRun = true;
         ShowReadyButton();
     });
@@ -441,6 +444,7 @@ function ChangeWebsiteForEveryone()
     ResetAvaliableCards();
     clients.forEach(client => {
         client.data.cardsLeft = cardsLeft;
+        client.data.isReady = false;
         client.emit("ChangeWebsite");
     });
 }
