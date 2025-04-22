@@ -30,6 +30,7 @@ io.on('connection', socket => {
     socket.data.isReady = false;
     socket.data.userName = "";
     socket.data.cardsLeft = 0;
+    socket.data.playedCards = [];
     console.log(socket.data);
     clients.push(socket);
     console.log("Client connected");
@@ -110,6 +111,10 @@ io.on('connection', socket => {
         socket.data.cardsLeft = cardsLeft;
         console.log(socket.data.cardsLeft);
         UpdatePlayerCardText();
+    });
+
+    socket.on("AddPlayedCard", (cardNum) =>{
+        socket.data.playedCards.push(cardNum);
     });
 
     socket.on("SetUserName", (userName) => {
@@ -293,15 +298,31 @@ app.get("/GetOtherCardInfo", (req, res) =>{
     let otherInfoText = "Player Cards Left\n";
     let totalCardsLeft = 0;
     clients.forEach(client => {
+        let playedCardsText = "has played a ";
+        if(client.data.playedCards.length == 0)
+        {
+            playedCardsText = "has played nothing.";
+        }
+        for(let i = 0; i < client.data.playedCards.length; i++)
+        {
+            if(i == client.data.playedCards.length - 1)
+            {
+                playedCardsText += `and ${client.data.playedCards[i]}.`;
+            }else
+            {
+                playedCardsText += `${client.data.playedCards[i]}, `;
+            }
+        }
+       
         if(client.data.cardsLeft > 1)
         {
-            otherInfoText += `${client.data.userName}: ${client.data.cardsLeft} cards left\n`;
+            otherInfoText += `${client.data.userName}: ${client.data.cardsLeft} cards left and ${playedCardsText}\n`;
         }else if(client.data.cardsLeft == 1)
         {
-            otherInfoText += `${client.data.userName}: ${client.data.cardsLeft} card left!\n`;
+            otherInfoText += `${client.data.userName}: ${client.data.cardsLeft} card left and ${playedCardsText}!\n`;
         }else
         {
-            otherInfoText += `${client.data.userName} has played his whole hand!\n`;
+            otherInfoText += `${client.data.userName} has played his whole hand and ${playedCardsText}!\n`;
         }
         totalCardsLeft += client.data.cardsLeft;
     });
@@ -340,6 +361,12 @@ app.get("/GetHostName", (req, res) => {
     res.json(hostData);
 });
 
+app.post("/AnimateCardServerSide", (req, res) => {
+    console.log(req.body.cards);
+    clients.forEach(client => {
+        client.emit("AnimateCardClientSide", req.cards);
+    });
+});
 
 
 app.get("/ShowServers", (req, res) => {
@@ -445,6 +472,7 @@ function ChangeWebsiteForEveryone()
     clients.forEach(client => {
         client.data.cardsLeft = cardsLeft;
         client.data.isReady = false;
+        client.data.playedCards = [];
         client.emit("ChangeWebsite");
     });
 }
@@ -504,6 +532,7 @@ app.post("/checkCardsInOrder", (req, res) =>{
 app.post("/sendToNextLevel", (req, res) => {
     ResetAvaliableCards();
     clients.forEach(client => {
+        client.data.playedCards = [];
         client.emit("NextLevel");
     });
 });

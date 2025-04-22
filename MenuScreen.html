@@ -140,6 +140,15 @@
                 ShowOtherPlayerInfo();
             });
 
+            socket.on("AnimateCardClientSide", (req, res) => {
+                //AddCardMoveAnimation(req.card, req.waitAmount, req.isFirst);
+            });
+
+            
+            async function AddPlayedCardToSocket(cardNum) {
+                
+            }
+
             async function StartFullGame() {
                 await fetch("/startFullGame", {
                     method: "post"
@@ -189,6 +198,13 @@
             function UpdateCardsLeft()
             {
                 socket.emit("SetCardsLeft", (GetCardsLeft()));
+            }
+
+            function AddPlayedCard(cardPlayed)
+            {
+                 
+                socket.emit("AddPlayedCard", (cardPlayed));
+                
             }
             //Sends email to desired people
             function AddEmail()

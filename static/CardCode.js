@@ -165,15 +165,29 @@ async function PlayCards()
         canSelect = false;
     }
     selectedCards = SortCards(selectedCards);
-    let isFirst = true
+    let isFirst = true;
     ReomveSelectedCardsFromHand();
     let waitAmount = 0;
+    let cardsText = [];
+    selectedCards.forEach(card => {
+        cardsText.push(card.innerText);
+    });
+    //The fetch request will send the card data to the other clients so they can use the data to make the cards on thier side.
+    fetch("AnimateCardServerSide", {
+        method: "post",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"cards":cardsText})
+
+    });
      selectedCards.forEach(card => {
         AddCardMoveAnimation(card, waitAmount, isFirst);
         cardsLeft--;
         isFirst = false
         waitAmount += 500;
         UpdateCardsLeft();
+        AddPlayedCard(card.innerText);
         ShowOtherPlayerInfo();
         //Wait till card moves in place to do this
     });
@@ -182,6 +196,10 @@ async function PlayCards()
     await wait(waitAmount);
     canSelect = true;
 
+
+}
+function AnimateCardFromOtherPlayer()
+{
 
 }
 
