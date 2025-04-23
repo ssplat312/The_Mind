@@ -178,7 +178,7 @@ async function PlayCards()
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({"cards":cardsText})
+        body: JSON.stringify({"cards":cardsText, "player":GetUserNameClientSide()})
 
     });
      selectedCards.forEach(card => {
@@ -198,9 +198,21 @@ async function PlayCards()
 
 
 }
-function AnimateCardFromOtherPlayer()
-{
 
+
+async function AnimateCardFromOtherPlayer(cardNum, waitTime)
+{
+    await wait(waitTime);
+    const tempCard = CreateCard(cardNum);
+    SetCardInPileForOtherPlayer(tempCard);
+}
+
+function CreateCard(cardVal)
+{
+    const card = document.createElement("p");
+    card.innerText = cardVal;
+    card.className = "Card";
+    return card;
 }
 
 async function AddCardMoveAnimation(card, waitAmount, isFirst)
@@ -320,10 +332,18 @@ function SetCardInPile(card)
     card.style.transform = "translate(0,0)";
     card.style.marginLeft = "0px";
     card.classList.remove("currentlyPlayed");
-    card.classList.add("played");
+    card.classList.add("played"); 
     hand.removeChild(card);
     pile.append(card);
     
+}
+
+function SetCardInPileForOtherPlayer(card)
+{
+    card.style.transform = "translate(0,0)";
+    card.style.marginLeft = "0px";
+    card.classList.add("played"); 
+    pile.append(card);
 }
 
 function SortCards(cardList)

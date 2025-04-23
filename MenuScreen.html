@@ -132,16 +132,21 @@
             socket.on("ShowReadyButton", ()=> {
                 document.getElementById("ReadyButton").hidden = false;
             });
-            socket.on("NextLevel", (req, res) =>{
+            socket.on("NextLevel", () =>{
                 NextLevel();
             });
             
-            socket.on("UpdatePlayerInfoText", (req, res) => {
+            socket.on("UpdatePlayerInfoText", () => {
                 ShowOtherPlayerInfo();
             });
 
-            socket.on("AnimateCardClientSide", (req, res) => {
-                //AddCardMoveAnimation(req.card, req.waitAmount, req.isFirst);
+            socket.on("AnimateCardClientSide", (cards) => {
+                console.log(cards);
+                let waitTime = 0
+                cards.forEach(card => {
+                    AnimateCardFromOtherPlayer(card, waitTime);
+                    waitTime += 500;
+                });
             });
 
             
@@ -290,6 +295,11 @@
                 userName = userNameInput.value;
                 userNameInput.value = "";
                 socket.emit("SetUserName", userName);
+            }
+
+            function GetUserNameClientSide()
+            {
+                return socketData.userName;
             }
 
             //The server, username, and hostname text setter

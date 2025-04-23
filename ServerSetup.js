@@ -364,7 +364,10 @@ app.get("/GetHostName", (req, res) => {
 app.post("/AnimateCardServerSide", (req, res) => {
     console.log(req.body.cards);
     clients.forEach(client => {
-        client.emit("AnimateCardClientSide", req.cards);
+        if(req.body.player != client.data.userName)
+        {
+            client.emit("AnimateCardClientSide", req.body.cards);
+        }
     });
 });
 
