@@ -35,6 +35,11 @@ io.on('connection', socket => {
     clients.push(socket);
     console.log("Client connected");
 
+    socket.on("MakeHost", () => {
+        console.log("Making host");
+        socket.data.isHost = true;
+    });
+
     socket.on("MakeServer", (newServerName, uri, userName) =>{
         if(newServerName.trim() == "")
         {
@@ -81,6 +86,7 @@ io.on('connection', socket => {
     */
 
     socket.on("GetMessageReady", (message) => {
+        console.log("here");
         if(socket.data.userName == "")
         {
             console.log("No username");
@@ -101,9 +107,17 @@ io.on('connection', socket => {
         });
     });
 
-    socket.on("ShowPastMessages", () =>{
+    socket.on("ShowPastMessages", (reciver) =>{
+        let socketID = "None";
+        clients.forEach(client => {
+            console.log(client.data.isHost);
+            if(client.data.userName == reciver)
+            {
+                socketID = client.id;
+            }
+        });
         allMessages.forEach(message =>{
-            socket.emit("Message", message, "None");
+            socket.emit("Message", message, socketID);
         })
     });
 
@@ -472,6 +486,7 @@ function ResetAvaliableCards()
 function ChangeWebsiteForEveryone()
 {
     ResetAvaliableCards();
+    cardsInOrder = [];
     clients.forEach(client => {
         client.data.cardsLeft = cardsLeft;
         client.data.isReady = false;

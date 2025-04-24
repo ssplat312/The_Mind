@@ -1,0 +1,71 @@
+ <div id="CustomGameForm" method="POST" action="/startCustomGame" hidden="true">
+            <p>Choose the amount of cards you want</p>
+            <input id="CustomCardRange" type="range" min="1" max="100" value="1" name="cardAmount" oninput="this.nextElementSibling.value = this.value">
+            <output>1</output>
+            <button onclick="StartCustomGame()">Create Game</button>
+        </div>
+        <!--Change how games start to adjust for readying up-->
+        <div id="LevelsForm">
+            <div id="LevelButtons" hidden="true">
+                <p>What level do you want to play?</p>
+                <button  onclick="StartGameFromLevel(10)" value="10">Level 10</button>
+                <button  onclick="StartGameFromLevel(9)" value="9">Level 9</button>
+                <button  onclick="StartGameFromLevel(8)" value="8">Level 8</button>
+                <button  onclick="StartGameFromLevel(7)" value="7">Level 7</button>
+                <button  onclick="StartGameFromLevel(6)" value="6">Level 6</button>
+                <button  onclick="StartGameFromLevel(5)" value="5">Level 5</button>
+                <button  onclick="StartGameFromLevel(4)" value="4">Level 4</button>
+                <button  onclick="StartGameFromLevel(3)" value="3">Level 3</button>
+                <button  onclick="StartGameFromLevel(2)" value="2">Level 2</button>
+                <button  onclick="StartGameFromLevel(1)" value="1">Level 1</button>
+            </div>
+        </div> 
+        <div id="FullGameForm" hidden="true">
+            <p>Click here to play a full run</p>
+            <button onclick="StartFullGame()" value="1">Start Run</button>
+        </div>
+        <button id="PlayButton" hidden="true">Play Game</button>
+        <p id="WinStatus">Win text goes here</p>
+
+        <div id="MakeServerForm">
+            <p>Enter a server Name here</p>
+            <input type="text" placeholder="Enter server name here" id="MakeServerInput">
+            <input type="button" value="Make new server" name="MakeServer" onclick="SetServerName()">
+        </div>
+        <div id="EmailContainer">
+            <label>You are inviting everyone below</label>
+            <ul id="Emails"></ul>
+            <input id="EmailInput" type="text" placeholder="Enter email here">
+            <input type="button" value="Add Email" onclick="AddEmail()">
+            <label>What do you want to say?</label>
+            <input id="EmailBody" type="text" placeholder="Enter what you want to say in your invite?">
+            <input type="button" value="Send Invite" onclick="SendEmailInvite()">
+        </div>
+
+        <div id="UserNameMaker">
+            <input type="text" id="UserNameInput" placeholder="Enter the username you want to use here.">
+            <button onclick="SetUserName()">Set Username</button>
+        </div>
+        <button id="ReadyButton" onclick="CheckForStartGame()" hidden="true">Click to ready up</button>
+       <!-- <div id="SearchDropdown">
+            <button id="DropdownButton" onclick="ClearSearch()">Clear Search</button>
+            <div id="SearchMenu" class="SearchContents">
+                <input type="text" id="SearchBar" onkeyup="GetServersForSearch()" onfocus="GetServersForSearch()" placeholder="Search Servers">
+                <div id="SearchResults">
+                    
+                </div>
+            </div>
+        </div>
+       -->
+        <main>
+            <p id="UsernameDisplay">Your Username: </p>
+            <p id="ServerNameDisplay">Current Server: </p>
+            <p id="HostDisplay">Host's name: </p>
+            <div id="MessageBox">
+            </div>
+            
+        </main>
+        <form id="MessageForm">
+            <input type="text" id="InputBox"  value="">
+            <input type="submit"  value="Send" style="transform: translate(800px, -15%); margin-top: 8%; margin-left: 7%;">
+        </form>

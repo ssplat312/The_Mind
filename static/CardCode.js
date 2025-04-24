@@ -64,9 +64,15 @@ async function GetAvalibleCards()
 
 }
 
+function ResetCardStatus()
+{
+    canSelect = true;
+    roundOver = false;
+}
 
 async function SetHand(handSize, gameName)
 {
+   
     document.getElementsByClassName("StickTop")[0].innerText = gameName;
     await GetAvalibleCards();
     cardsLeft = handSize;

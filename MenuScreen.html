@@ -75,7 +75,6 @@
             </div>
             
         </main>
-        <button onclick="TestReplace()">Test</button>
         <form id="MessageForm">
             <input type="text" id="InputBox"  value="">
             <input type="submit"  value="Send" style="transform: translate(800px, -15%); margin-top: 8%; margin-left: 7%;">
@@ -94,26 +93,26 @@
             var isHost = false;
             var hasHostGlobal = false;
             socket.emit("GetSocketData");
-            const sendForm = document.getElementById("MessageForm");
-            const inputArea = document.getElementById("InputBox");
+            let sendForm = document.getElementById("MessageForm");
+            let inputArea = document.getElementById("InputBox");
 
-            const userNameInput = document.getElementById("UserNameInput");
+            let userNameInput = document.getElementById("UserNameInput");
             userNameInput.addEventListener("keydown", ()=> {
                 userNameInput.style.backgroundColor = "white";
             });
 
-            const UserNameDispalyText = document.getElementById("UsernameDisplay");
-            const ServerNameDispalyText = document.getElementById("ServerNameDisplay");
-            const HostNameDispalyText = document.getElementById("HostDisplay");
-            const CustomGameForm = document.getElementById("CustomGameForm");
-            const FullGameForm = document.getElementById("FullGameForm");
-            const LevelsForm = document.getElementById("LevelsForm");
+            let UserNameDispalyText = document.getElementById("UsernameDisplay");
+            let ServerNameDispalyText = document.getElementById("ServerNameDisplay");
+            let HostNameDispalyText = document.getElementById("HostDisplay");
+            let CustomGameForm = document.getElementById("CustomGameForm");
+            let FullGameForm = document.getElementById("FullGameForm");
+            let LevelsForm = document.getElementById("LevelsForm");
         
-            const LevelButtons = document.getElementById("LevelButtons");
+            let LevelButtons = document.getElementById("LevelButtons");
            
-            const EmailForm = document.getElementById("EmailContainer");
-            const severForm = document.getElementById("MakeServerForm");
-            const serverText = document.getElementById("MakeServerInput");
+            let EmailForm = document.getElementById("EmailContainer");
+            let severForm = document.getElementById("MakeServerForm");
+            let serverText = document.getElementById("MakeServerInput");
             FullGameForm.addEventListener("submit", (event) => {
                 event.defaultPrevented;
             });
@@ -149,10 +148,6 @@
                 });
             });
 
-            
-            async function AddPlayedCardToSocket(cardNum) {
-                
-            }
 
             async function StartFullGame() {
                 await fetch("/startFullGame", {
@@ -191,6 +186,56 @@
                     document.getElementById("MainBody").style.backgroundColor = "wheat";
                     document.getElementById("MainBodyContents").innerHTML = text;
                     SetCardElements();
+                });
+            }
+
+            async function ReplaceWithMainMenu()
+            {
+                ResetCardStatus();
+                const fileURL = "/MenuScreenHTMLText.txt";
+                await fetch(fileURL).then(r => r.text()).then(text => {
+                    document.getElementById("MainBody").style.backgroundColor = "white";
+                    document.getElementById("MainBodyContents").innerHTML = text;
+                });
+                await socket.emit("GetSocketData");
+                SetWinText();
+                await RestateElements();
+
+                await SetIniztailInfoAfterGame();
+            }
+
+            async function RestateElements() 
+            {
+                sendForm = document.getElementById("MessageForm");
+                inputArea = document.getElementById("InputBox");
+
+                userNameInput = document.getElementById("UserNameInput");
+                userNameInput.addEventListener("keydown", ()=> {
+                    userNameInput.style.backgroundColor = "white";
+                });
+
+                UserNameDispalyText = document.getElementById("UsernameDisplay");
+                ServerNameDispalyText = document.getElementById("ServerNameDisplay");
+                HostNameDispalyText = document.getElementById("HostDisplay");
+                CustomGameForm = document.getElementById("CustomGameForm");
+                FullGameForm = document.getElementById("FullGameForm");
+                LevelsForm = document.getElementById("LevelsForm");
+            
+                LevelButtons = document.getElementById("LevelButtons");
+            
+                EmailForm = document.getElementById("EmailContainer");
+                severForm = document.getElementById("MakeServerForm");
+                serverText = document.getElementById("MakeServerInput");
+                FullGameForm.addEventListener("submit", (event) => {
+                    event.defaultPrevented;
+                });
+
+                LevelsForm.addEventListener("submit", (event) => {
+                    event.defaultPrevented;
+                });
+
+                CustomGameForm.addEventListener("submit", (event) => {
+                    event.defaultPrevented;
                 });
             }
 
@@ -323,7 +368,8 @@
             }
 
             async function SetServerNameBackEnd(serverNameSent)
-            {
+            {   
+                socket.emit("MakeHost");
                 let ServerNameData = {ServerN:serverNameSent};
                 await fetch("/SetServerNameServerSide", {
                     method: "post",
@@ -478,7 +524,6 @@
                 LevelButtons.hidden = false;
                 serverText.value = "";
 
-                socket.emit("ShowPastMessages");
                 socket.emit("GetMessageReady", "joined");
 
             }
@@ -582,7 +627,7 @@ F
                 socket.on("UserNameFree", (hasHost)=>{
                     if(hasHost)
                     {
-                        socket.emit("ShowPastMessages");
+                        socket.emit("ShowPastMessages", GetUserNameClientSide());
                         socket.emit("GetMessageReady", "joined");
                     }
                     SetUserNameText();
@@ -630,10 +675,44 @@ F
                        
                     });
                 }
+                
+                
+                async function SetIniztailInfoAfterGame()
+                {
+                    SetInfoText();
+                    SetHasHost();
+                    console.log(socketData);   
+                    if(socketData.isHost)
+                    {
+                        isHost = true;
+                        ShowHostElements();
+                    }else
+                    {
+                        HideHostElements();
+                    }
+                    socket.emit("ShowPastMessages", GetUserNameClientSide());
+                }
+
+                function ShowHostElements()
+                {
+                    CustomGameForm.hidden = false;
+                    FullGameForm.hidden = false;
+                    LevelButtons.hidden = false;
+                    severForm.hidden = false;
+                    EmailForm.hidden = false;
+                }
+
+                function HideHostElements()
+                {
+                    CustomGameForm.hidden = true;
+                    FullGameForm.hidden = true;
+                    LevelButtons.hidden = true;
+                    severForm.hidden = true;
+                    EmailForm.hidden = true;
+                }
+
                 SetInfoText();
-                
                 SetHasHost();
-                
                 
 
                 
