@@ -58,7 +58,6 @@ async function UpdateEveryoneCardInfo()
 async function GetAvalibleCards()
 {
     await fetch("GetAvaliableCards").then(response => response.json()).then(AvalibleCardsJson => {
-        console.log(AvalibleCardsJson.AvaliableCards);
         avalibleCards = AvalibleCardsJson.AvaliableCards;
     });
 
@@ -231,10 +230,10 @@ async function AddCardMoveAnimation(card, waitAmount, isFirst)
         return;
     }
     let lMarginSize = parseInt(card.style.marginLeft.replace("px", ""));
-    if(!isFirst)
-    {
-        lMarginSize -= 90;
-    }
+   
+    //marginSize is substracted by the pile xPosition - the hand xPosition
+    lMarginSize -= 700-500;
+    
     card.classList.remove("active");
     card.classList.add("currentlyPlayed");
     card.style.transform = "translate(" + String(-lMarginSize) + "px, -300px)";
@@ -275,7 +274,7 @@ async function CheckCard(cardText)
             console.log("You won this round");
             if(fullRun && totalCards < 10)
             {
-                document.getElementById("NextLevelButton").hidden = false;
+                ShowNextLevelButtonForEveryone();
             }else
             {
                 var winText = "You won ";
@@ -297,8 +296,7 @@ async function CheckCard(cardText)
                     body: JSON.stringify(winData)
                 });
 
-                document.getElementById("PlayButton").hidden = true;
-                document.getElementById("EndButton").hidden = false;
+                ShowLeaveButtonForEveryone();
             }
         }
     }else
@@ -322,8 +320,8 @@ async function CheckCard(cardText)
               },
             body: JSON.stringify(winData)
         });
-        document.getElementById("PlayButton").hidden = true;
-        document.getElementById("EndButton").hidden = false;
+        ShowLeaveButtonForEveryone();
+        
     }
 }
 
@@ -407,3 +405,102 @@ function NextLevel()
     SetHand(totalCards, gameName);
 }
 
+
+function ShowLeaveButtonForEveryone()
+{
+    fetch("/ShowEveryoneLeaveButton", {
+        method: "post"
+    });
+}
+
+function ShowLeaveButton()
+{
+    document.getElementById("PlayButton").hidden = true;
+    document.getElementById("EndButton").hidden = false;
+    document.getElementById("EndButton").innerText = "Leave Game";
+}
+
+async function ChangeLeaveReadyStatus()
+{
+    ChangeReadyStatus();
+
+    if(GetReadyStatus() == true)
+    {
+        document.getElementById("EndButton").innerText = "You're ready!";
+    }else
+    {
+        document.getElementById("EndButton").innerText = "You're not ready";
+
+    }
+
+    await fetch("/IsEveryoneReady").then(response => {return response.json()}).then(EveryoneIsReadyJson => {
+        if(EveryoneIsReadyJson.EveryoneReady)
+        {
+            fetch("/EveryoneLeave", {
+                method: "post"
+            });
+        }
+    });
+}
+
+
+function ShowNextLevelButtonForEveryone()
+{
+    fetch("/ShowEveryoneNextLevelButton", {
+        method: "post"
+    });
+}
+
+function ShowNextLevelButton()
+{
+    document.getElementById("NextLevelButton").hidden = false;
+    document.getElementById("NextLevelButton").innerText = "Next Level";
+}
+
+async function ChangeNextLevelStatus()
+{
+    ChangeReadyStatus();
+
+    if(GetReadyStatus() == true)
+    {
+        document.getElementById("NextLevelButton").innerText = "You're ready!";
+    }else
+    {
+        document.getElementById("NextLevelButton").innerText = "You're not ready";
+
+    }
+
+    await fetch("/IsEveryoneReady").then(response => {return response.json()}).then(EveryoneIsReadyJson => {
+        if(EveryoneIsReadyJson.EveryoneReady)
+        {
+            fetch("/EveryoneNextLevel", {
+                method: "post"
+            });
+        }
+    });
+}
+
+
+async function ChangeStartGameStatus()
+{
+    ChangeReadyStatus();
+
+    console.log(GetReadyStatus());
+    if(GetReadyStatus() == true)
+    {
+        document.getElementById("StartButton").innerText = "You're ready!";
+    }else
+    {
+        document.getElementById("StartButton").innerText = "You're not ready";
+
+    }
+    await fetch("/IsEveryoneReady").then(response => {return response.json()}).then(EveryoneIsReadyJson => {
+        console.log(EveryoneIsReadyJson);
+        if(EveryoneIsReadyJson.EveryoneReady)
+        {
+            fetch("/EveryoneStart", {
+                method: "post"
+            });
+        }
+    });
+}

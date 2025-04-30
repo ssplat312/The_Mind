@@ -8,10 +8,10 @@
         <link rel="stylesheet" type="text/css" href="/GeneralStyles.css">
     </head>
     <body style="background-color: wheat;">
-        <button onclick="StartGame()" style="transform: translate(1100px,525px)" id="StartButton">Click when ready</button>
+        <button onclick="ChangeStartGameStatus()" style="transform: translate(1100px,525px)" id="StartButton">Click when ready</button>
         <p id="WinText"></p>
-        <button onclick="NextLevel()" style="transform: translate(1100px,525px)" id="NextLevelButton" hidden='true'>Click when ready</button>
-        <button onclick="ReplaceWithMainMenu()" style="transform: translate(1100px,525px)" id="EndButton" hidden="true">Click to go to main menu</button>
+        <button onclick="ChangeNextLevelStatus()" style="transform: translate(1100px,525px)" id="NextLevelButton" hidden='true'>Click when ready</button>
+        <button onclick="ChangeLeaveReadyStatus()" style="transform: translate(1100px,525px)" id="EndButton" hidden="true">Click to go to main menu</button>
         <div id="Pile">
             <p>Deck goes here</p>
         </div>

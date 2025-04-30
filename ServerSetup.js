@@ -86,7 +86,6 @@ io.on('connection', socket => {
     */
 
     socket.on("GetMessageReady", (message) => {
-        console.log("here");
         if(socket.data.userName == "")
         {
             console.log("No username");
@@ -153,7 +152,13 @@ io.on('connection', socket => {
         }
         console.log(socket.data);
         let hasHost = ServerName != "";
-        socket.emit('UserNameFree', hasHost);
+        if(isChangingName == false)
+        {
+            socket.emit('UserNameFree', hasHost);
+        }else
+        {
+            socket.emit("ChangingUserName", prevUserName, socket.data.userName);
+        }
     });
 
     socket.on("GetSocketData", () => {
@@ -297,6 +302,39 @@ app.post("/UpdatePlayerCardText", (req, res) => {
     UpdatePlayerCardText();
 });
 
+app.post("/ShowEveryoneLeaveButton", (req, res) => {
+    clients.forEach(client => {
+        client.emit("ShowLeaveButton");
+    });
+});
+
+app.post("/ShowEveryoneNextLevelButton", (req, res) => {
+    clients.forEach(client => {
+        client.emit("ShowNextLevelButton");
+    });
+});
+
+app.post("/EveryoneStart", (req, res) => {
+    clients.forEach(client => {
+        client.data.isReady = false;
+        client.emit("StartGame");
+    });
+});
+
+app.post("/EveryoneNextLevel", (req, res) => {
+    clients.forEach(client => {
+        client.data.isReady = false;
+        client.emit("GoToNextLevel");
+    });
+});
+
+app.post("/EveryoneLeave", (req, res) => {
+    clients.forEach(client => {
+        client.data.isReady = false;
+        client.emit("LeaveGame");
+    });
+});
+
 app.get("/GetPersonalInfo",(req, res) => {
     for(let i = 0; i < clients.length; i++)
     {
@@ -437,6 +475,7 @@ app.get("/GetAvaliableCards", (req, res) => {
     console.log(avaliableCardsJson);
     res.json(avaliableCardsJson);
 });
+
 
 app.post("/CheckForChangeToGame", (req, res) =>
 {

@@ -50,9 +50,25 @@
 }
 
 #Hand{
-    transform: translate(950px,600px);
+    transform: translate(500px,600px);
 }
 
 #Pile{
-    transform: translate(950px,300px);
+    transform: translate(700px,300px);
+}
+
+#StartButton{
+
+}
+
+#NextLevelButton{
+
+}
+
+#EndButton{
+
+}
+
+#PlayButton{
+
 }

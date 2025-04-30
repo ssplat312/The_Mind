@@ -77,7 +77,7 @@
         </main>
         <form id="MessageForm">
             <input type="text" id="InputBox"  value="">
-            <input type="submit"  value="Send" style="transform: translate(800px, -15%); margin-top: 8%; margin-left: 7%;">
+            <input type="submit" id="MessageButton"  value="Send">
         </form>
         </div>
         <!--Server/Messaging script-->
@@ -125,7 +125,7 @@
                 event.defaultPrevented;
             });
             socket.on("ChangeWebsite", ()=>{
-                TestReplace();
+                ReplaceWithGamePage();
             });
 
             socket.on("ShowReadyButton", ()=> {
@@ -179,7 +179,7 @@
                 });
             }
 
-            async function TestReplace()
+            async function ReplaceWithGamePage()
             {
                 const fileURL = "/MainPageHTMLText.txt";
                 await fetch(fileURL).then(r => r.text()).then(text => {
@@ -207,6 +207,30 @@
             async function RestateElements() 
             {
                 sendForm = document.getElementById("MessageForm");
+                sendForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                if(inputArea.value.trim() != "")
+                {
+                    let inputValue = inputArea.value
+                    inputArea.value = "";
+                    console.log(socketData);
+                    
+                    if(userName == "")
+                    {
+                        inputArea.placeholder = "Make a username first, then a server";
+                        return;
+                    }                       
+                    
+                    if(serverName == "")
+                    {
+                        inputArea.placeholder = "Create or join a server before you join."
+                        return;
+                    }
+                    socket.emit("GetMessageReady", inputValue);
+
+                }
+                 });
+
                 inputArea = document.getElementById("InputBox");
 
                 userNameInput = document.getElementById("UserNameInput");
@@ -377,7 +401,9 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(ServerNameData)
-                }).then(SetServerNameText());
+                });
+
+               
 
             }
 
@@ -405,7 +431,9 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(HostNameData)
-                }).then(SetHostText());
+                });
+
+               
             }
             
 
@@ -526,6 +554,9 @@
 
                 socket.emit("GetMessageReady", "joined");
 
+                await wait(100);
+                SetInfoText();
+
             }
 
             /*
@@ -604,10 +635,6 @@ F
                 }
             });
 
-                socket.on("GetCardsLeft", () => {
-                    
-                });
-
                 socket.on("Message", (message, clientId) => {
                     console.log(hasHostGlobal);                    
                     let textEle = document.createElement('p');
@@ -630,6 +657,14 @@ F
                         socket.emit("ShowPastMessages", GetUserNameClientSide());
                         socket.emit("GetMessageReady", "joined");
                     }
+                    SetUserNameText();
+                    SetHostText();
+                    userNameInput.placeholder  = `${userName} is your username now! Enjoy!`;
+                    userNameInput.style.backgroundColor = "green";
+                });
+
+                socket.on("ChangingUserName", (prevName, newName) => {
+                    socket.emit("GetMessageReady", `${prevName} has chagned his name to ${newName}`);
                     SetUserNameText();
                     SetHostText();
                     userNameInput.placeholder  = `${userName} is your username now! Enjoy!`;
@@ -667,6 +702,26 @@ F
                     document.getElementById("PlayButton").hidden = false;
                 });
 
+                socket.on("ShowNextLevelButton", () => {
+                    ShowNextLevelButton();
+                });
+
+                socket.on("ShowLeaveButton", () =>{
+                    ShowLeaveButton();
+                });
+
+                socket.on("StartGame", () => {
+                    StartGame();   
+                });
+
+                socket.on("GoToNextLevel", () => {
+                    NextLevel();
+                });
+
+                socket.on("LeaveGame", () => {
+                    ReplaceWithMainMenu();
+                });
+                
                 async function SetHasHost()
                 {
                     await fetch("/getHasHost").then(response => response.json()).then(HasHostData => {
@@ -700,6 +755,11 @@ F
                     LevelButtons.hidden = false;
                     severForm.hidden = false;
                     EmailForm.hidden = false;
+                }
+
+                function GetReadyStatus()
+                {
+                    return socketData.isReady;
                 }
 
                 function HideHostElements()
