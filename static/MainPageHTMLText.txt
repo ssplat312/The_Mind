@@ -1,13 +1,13 @@
         <p id="OtherPlayersText"></p>
-        <button onclick="ChangeStartGameStatus()" style="transform: translate(1100px,525px)" id="StartButton">Click when ready</button>
+        <button onclick="ChangeStartGameStatus()" id="StartButton">Click when ready</button>
         <p id="WinText"></p>
-        <button onclick="ChangeNextLevelStatus()" style="transform: translate(1100px,525px)" id="NextLevelButton" hidden='true'>Click when ready</button>
-        <button onclick="ChangeLeaveReadyStatus()" style="transform: translate(1100px,525px)" id="EndButton" hidden="true">Click to go to main menu</button>
+        <button onclick="ChangeNextLevelStatus()"  id="NextLevelButton" hidden='true'>Click when ready</button>
+        <button onclick="ChangeLeaveReadyStatus()"  id="EndButton" hidden="true">Click to go to main menu</button>
         <div id="Pile">
             <p>Deck goes here</p>
         </div>
         <div id="Hand">
         </div>
-        <button onclick="PlayCards()" style="transform: translate(1100px,825px);" id="PlayButton">Play Cards</button>
+        <button onclick="PlayCards()" id="PlayButton">Play Cards</button>
         <p class="StickTop"></p>
         

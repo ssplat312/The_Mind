@@ -84,10 +84,6 @@ async function SetHand(handSize, gameName)
     var cardsVal = [];
     for(let i = 0; i < handSize; i++)
     {
-        if(i >= 100)
-        {
-            break;
-        }
         let selectedCardPos = Math.floor(Math.random() * avalibleCards.length);
         let cardVal = avalibleCards[selectedCardPos];
         cardsVal.push(cardVal);

@@ -58,17 +58,18 @@
 }
 
 #StartButton{
-
+    transform: translate(700px,300px);
 }
 
 #NextLevelButton{
-
+    transform: translate(700px,300px);
 }
 
 #EndButton{
+    transform: translate(700px,300px);
 
 }
 
 #PlayButton{
-
+    transform: translate(700px,300px);
 }

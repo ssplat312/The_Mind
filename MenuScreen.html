@@ -42,7 +42,7 @@
             <input type="text" placeholder="Enter server name here" id="MakeServerInput">
             <input type="button" value="Make new server" name="MakeServer" onclick="SetServerName()">
         </div>
-        <div id="EmailContainer">
+        <div id="EmailContainer" hidden="true">
             <label>You are inviting everyone below</label>
             <ul id="Emails"></ul>
             <input id="EmailInput" type="text" placeholder="Enter email here">
@@ -448,8 +448,10 @@
                         newHostText = `Host name: Nothing`;
                     }else if(hostName != userName)      
                     {
-                        severForm.hidden = true;
-                        EmailForm.hidden = true;
+                        HideHostElements();
+                    }else
+                    {
+                        ShowHostElements();
                     }
 
                     HostNameDispalyText.innerText = newHostText;
@@ -644,6 +646,7 @@ F
                     if(clientId == socket.id)
                     {
                         textEle.style.textAlign = "right";
+                        textEle.style.color = "blue";
                     }
                     document.getElementById("MessageBox").append(textEle);
                     document.getElementById("MessageBox").scrollTop = document.getElementById("MessageBox").scrollHeight;

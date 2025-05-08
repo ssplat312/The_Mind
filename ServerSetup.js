@@ -131,13 +131,16 @@ io.on('connection', socket => {
     });
 
     socket.on("SetUserName", (userName) => {
-        clients.forEach(client => {
+        for(let i = 0; i < clients.length; i++)
+        {
+            let client = clients[i];
+            console.log(client.data.userName.trim().toLowerCase() + " == " + userName.trim().toLowerCase())
             if(client.data.userName.trim().toLowerCase() == userName.trim().toLowerCase())
             {
                 socket.emit("UserNameTaken");
                 return;
             }
-        });
+        }
         let isChangingName = false;
         let prevUserName = "";
         if(socket.data.userName != "")
@@ -457,6 +460,7 @@ app.post("/startCustomGame", (req, res) =>
         cardsLeft = parseInt(req.body.cardAmount);
         gameName = "Custom Game";
         isfullRun = false;
+        SetMaxCards_PlayerCount();
         ShowReadyButton();
     });
 
@@ -497,12 +501,18 @@ app.post("/removeUsedCards", (req, res) => {
 
 function SetMaxCards_PlayerCount()
 {
+    console.log(cardsLeft);
     playerAmount = clients.length;
     maxCards = 100;
     let addAmount = clients.length - 4;
     if(addAmount > 0)
     {
         maxCards += addAmount * 25;
+    }
+
+    if(cardsLeft > 10)
+    {
+        maxCards += (cardsLeft - 10) * clients.length;
     }
     totalCards = maxCards;
 }
