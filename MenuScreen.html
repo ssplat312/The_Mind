@@ -553,7 +553,7 @@
                 FullGameForm.hidden = false;
                 LevelButtons.hidden = false;
                 serverText.value = "";
-
+                socket.emit("ShowPastMessages", GetUserNameClientSide());
                 socket.emit("GetMessageReady", "joined");
 
                 await wait(100);
@@ -647,6 +647,10 @@ F
                     {
                         textEle.style.textAlign = "right";
                         textEle.style.color = "blue";
+                    }else if(clientId == "Intro")
+                    {
+                        textEle.style.color = "green";
+                        textEle.style.fontStyle = "italic";
                     }
                     document.getElementById("MessageBox").append(textEle);
                     document.getElementById("MessageBox").scrollTop = document.getElementById("MessageBox").scrollHeight;
@@ -674,9 +678,12 @@ F
                     userNameInput.style.backgroundColor = "green";
                 });
                 
-                socket.on("UserNameTaken", ()=>{
+                socket.on("UserNameTaken", (isChanging)=>{
                     let userNameHolder = userName;
-                    userName = "";
+                    if(isChanging == false)
+                    {
+                        userName = "";
+                    }
                     userNameInput.placeholder  = `${userNameHolder} is taken, please input a different name`;
                     userNameInput.style.backgroundColor = "red";
 
