@@ -14,7 +14,9 @@ const { randomInt } = require('crypto');
 const express = require('express');
 const path = require('path');
 const { hostname } = require('os');
+const serverless = require('serverless-http');
 const app = express();
+const router = express.Router();
 
 
 const clients = [];
@@ -25,6 +27,17 @@ const Server = require('http').createServer(app);
 var ServerName = "";
 var HostName = "";
 const io = require("socket.io")(Server);
+
+router.get("/", (req, res) =>
+{
+  
+});
+
+
+app.use("/.netify/functions/api",router)
+
+module.exports.handler = serverless(app);
+
 io.on('connection', socket => {
     socket.data.isHost = false;
     socket.data.isReady = false;
