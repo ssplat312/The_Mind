@@ -34,7 +34,7 @@ router.get("/", (req, res) =>
 });
 
 
-app.use("/.netify/functions/api",router)
+app.use("/.netify/functions/ServerSetup",router)
 
 module.exports.handler = serverless(app);
 
