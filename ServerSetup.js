@@ -1,4 +1,5 @@
 //Server part of script
+/*
 var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "sql3.freesqldatabase.com",
@@ -6,8 +7,7 @@ var con = mysql.createConnection({
     password: "DLw6Hfya4L",
     database: "sql3764497"
 });
-
-
+*/
 
 const { randomInt } = require('crypto');
 
@@ -172,7 +172,10 @@ io.on('connection', socket => {
         socket.data.isReady = !socket.data.isReady;
         console.log(`${socket.data.userName} is ${socket.data.isReady}`)
     });
-    
+
+    socket.on("/ResetPlayedCards", () => {
+    socket.data.playedCards = [];
+    });
     socket.on("disconnect", () => {
         userLeaving = socket.data.userName;
         
@@ -280,7 +283,7 @@ let avaliableCards = [];
 //For moving and getting server data and going to new parts of website
 app.get("/", (req,res) =>{
     ipAdress = req.ip;
-    res.sendFile(path.join(__dirname, 'MenuScreen.html'));
+    res.sendFile(path.join(__dirname, 'dist/MenuScreen.html'));
 });
 
 
@@ -499,6 +502,8 @@ app.post("/removeUsedCards", (req, res) => {
     });
 });
 
+
+
 function SetMaxCards_PlayerCount()
 {
     console.log(cardsLeft);
@@ -570,7 +575,7 @@ app.post("/setWinStatus", (req, res) => {
 });
 
 app.get("/returnToMenu", (req, res) =>{
-    res.sendFile(path.join(__dirname, 'MenuScreen.html'));
+    res.sendFile(path.join(__dirname, 'dist/MenuScreen.html'));
 });
 
 app.post("/setCardsInOrder", (req, res) =>{
