@@ -1,5 +1,14 @@
 {
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "serverless": "^4.19.1",
+    "serverless-http": "^4.0.0",
+    "socket.io": "^4.8.1"
+  },
+
+  "scripts": {
+    "start": "./node_modules/.bin/netifly-lambda serve src",
+    "build": "./node_modules/.bin/netifly-lambda serve src"
+    
   }
 }
