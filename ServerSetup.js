@@ -30,9 +30,7 @@ const io = require("socket.io")(Server);
 
 router.get("/", (req, res) =>
 {
-  res.json({
-    "HIlksdf":";jlkasdf"
-  });
+      res.sendFile(path.join(__dirname, 'dist/MenuScreen.html'));
 });
 
 
@@ -297,7 +295,6 @@ let avaliableCards = [];
 
 //For moving and getting server data and going to new parts of website
 app.get("/", (req,res) =>{
-    ipAdress = req.ip;
     res.sendFile(path.join(__dirname, 'dist/MenuScreen.html'));
 });
 
