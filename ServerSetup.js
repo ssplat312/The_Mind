@@ -30,7 +30,9 @@ const io = require("socket.io")(Server);
 
 router.get("/", (req, res) =>
 {
-  
+  res.json({
+    "HIlksdf":";jlkasdf"
+  });
 });
 
 
